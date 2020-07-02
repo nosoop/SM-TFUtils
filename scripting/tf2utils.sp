@@ -9,7 +9,7 @@
 #include <sdkhooks>
 #include <sdktools>
 
-#define PLUGIN_VERSION "0.2.0"
+#define PLUGIN_VERSION "0.3.0"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -23,11 +23,14 @@ bool g_bDeferredSpeedUpdate[MAXPLAYERS + 1];
 
 Handle g_SDKCallPlayerTakeHealth;
 
+Handle g_SDKCallPlayerSharedGetMaxHealth;
+
 public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	RegPluginLibrary("nosoop_tf2utils");
 	
 	CreateNative("TF2Util_UpdatePlayerSpeed", Native_UpdatePlayerSpeed);
 	CreateNative("TF2Util_TakeHealth", Native_TakeHealth);
+	CreateNative("TF2Util_GetPlayerMaxHealth", Native_GetMaxHealth);
 	
 	return APLRes_Success;
 }
@@ -48,6 +51,14 @@ public void OnPluginStart() {
 	PrepSDKCall_AddParameter(SDKType_Float, SDKPass_Plain);
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
 	g_SDKCallPlayerTakeHealth = EndPrepSDKCall();
+	
+	StartPrepSDKCall(SDKCall_Raw);
+	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature,
+			"CTFPlayerShared::GetMaxBuffedHealth()");
+	PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
+	PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
+	g_SDKCallPlayerSharedGetMaxHealth = EndPrepSDKCall();
 	
 	delete hGameConf;
 }
@@ -70,7 +81,7 @@ public void OnPreThinkPost(int client) {
 	}
 }
 
-// force speed update; any previous deferred calls are now finished
+// force speed update; any previous deferred calls are now fulfilled
 void ForceSpeedUpdate(int client) {
 	SDKCall(g_SDKCallUpdatePlayerSpeed, client);
 	g_bDeferredSpeedUpdate[client] = false;
@@ -94,4 +105,16 @@ public int Native_TakeHealth(Handle plugin, int nParams) {
 	int bitsHealType = GetNativeCell(3);
 	
 	return SDKCall(g_SDKCallPlayerTakeHealth, client, amount, bitsHealType);
+}
+
+// int(int client, bool bIgnoreAttributes, bool bIgnoreOverheal);
+public int Native_GetMaxHealth(Handle plugin, int nParams) {
+	int client = GetNativeCell(1);
+	bool bIgnoreAttributes = !!GetNativeCell(2);
+	bool bIgnoreOverheal = !!GetNativeCell(3);
+	
+	Address offs_Shared = view_as<Address>(GetEntSendPropOffs(client, "m_Shared", true));
+	
+	return SDKCall(g_SDKCallPlayerSharedGetMaxHealth, GetEntityAddress(client) + offs_Shared,
+			bIgnoreAttributes, bIgnoreOverheal);
 }

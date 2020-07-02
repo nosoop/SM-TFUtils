@@ -32,6 +32,12 @@
 native int TF2Util_TakeHealth(int client, float flHealth, int bitsHealType = 0);
 
 /**
+ * Returns the current maximum health of the player.
+ */
+native int TF2Util_GetPlayerMaxHealth(int client, bool bIgnoreAttributes = false,
+		bool bIgnoreOverheal = false);
+
+/**
  * Forces an update to the given player's speed.
  * 
  * @param immediate Whether or not the speed is updated immediately.  If this is set to false,
