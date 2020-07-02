@@ -1,0 +1,39 @@
+/**
+ * Provides a number of TF2-specific utilities that depend on gamedata to function without
+ * potentially breaking on future updates.  An assortment of things that don't really belong in
+ * their own specifically categorized library.
+ * 
+ * This includes calls to game functions and accessing various memory locations, as well as
+ * provides helper functions for pointers.
+ * 
+ * This excludes things that require extensions not bundled with SourceMod
+ * (such as DHooks, Source Scramble).
+ */
+
+#if defined __nosoop_tf2_utils_included
+	#endinput
+#endif
+
+#define __nosoop_tf2_utils_included
+
+#include <tf2_stocks>
+
+/**
+ * Forces an update to the given player's speed.
+ * 
+ * @param immediate Whether or not the speed is updated immediately.  If this is set to false,
+ * the call will be defered in a way that any number of calls to this native in the same frame
+ * will only result in at most one update more than the number of immediate calls (intended to
+ * reduce the number of calls forwarded to plugins that detour the maximum speed calculation).
+ */
+native void TF2Util_UpdatePlayerSpeed(int client, bool immediate = false);
+
+public SharedPlugin __pl_tf2utils = {
+	name = "nosoop_tf2utils",
+	file = "tf2utils.smx",
+#if defined REQUIRE_PLUGIN
+	required = 1,
+#else
+	required = 0,
+#endif
+};

@@ -1,0 +1,16 @@
+"Games"
+{
+	"tf"
+	{
+		"Signatures"
+		{
+			"CTFPlayer::TeamFortress_SetSpeed()"
+			{
+				// function is x-ref to CTFPlayer::TeamFortress_CalculateMaxSpeed
+				"library"		"server"
+				"linux"			"@_ZN9CTFPlayer21TeamFortress_SetSpeedEv"
+				"windows"		"\x55\x8B\xEC\xA1\x2A\x2A\x2A\x2A\x83\xEC\x1C\x53"
+			}
+		}
+	}
+}
