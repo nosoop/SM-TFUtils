@@ -18,6 +18,19 @@
 
 #include <tf2_stocks>
 
+#define TAKEHEALTH_IGNORE_MAXHEALTH		(DMG_BULLET) // Player can be overhealed with this bit set.
+#define TAKEHEALTH_IGNORE_DEBUFFS		(DMG_SLASH)  // Currently unused?  Looks like it was originally for Pyro's FT healing debuff mechanism
+
+/**
+ * Attempts to heal the player for the specified amount.
+ * 
+ * @param flHealth        Amount of health to heal.
+ * @param bitsHealType    TakeHealth flags.  See TAKEHEALTH_* constants.
+ * 
+ * @return Amount of health granted after modifiers.
+ */
+native int TF2Util_TakeHealth(int client, float flHealth, int bitsHealType = 0);
+
 /**
  * Forces an update to the given player's speed.
  * 

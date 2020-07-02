@@ -2,6 +2,15 @@
 {
 	"tf"
 	{
+		"Offsets"
+		{
+			// virtual offsets
+			"CBaseEntity::TakeHealth()"
+			{
+				"windows"	"64"
+				"linux"		"65"
+			}
+		}
 		"Signatures"
 		{
 			"CTFPlayer::TeamFortress_SetSpeed()"

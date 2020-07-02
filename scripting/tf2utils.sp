@@ -9,7 +9,7 @@
 #include <sdkhooks>
 #include <sdktools>
 
-#define PLUGIN_VERSION "0.1.0"
+#define PLUGIN_VERSION "0.2.0"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -21,10 +21,13 @@ public Plugin myinfo = {
 Handle g_SDKCallUpdatePlayerSpeed;
 bool g_bDeferredSpeedUpdate[MAXPLAYERS + 1];
 
+Handle g_SDKCallPlayerTakeHealth;
+
 public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	RegPluginLibrary("nosoop_tf2utils");
 	
 	CreateNative("TF2Util_UpdatePlayerSpeed", Native_UpdatePlayerSpeed);
+	CreateNative("TF2Util_TakeHealth", Native_TakeHealth);
 	
 	return APLRes_Success;
 }
@@ -38,6 +41,13 @@ public void OnPluginStart() {
 	StartPrepSDKCall(SDKCall_Player);
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CTFPlayer::TeamFortress_SetSpeed()");
 	g_SDKCallUpdatePlayerSpeed = EndPrepSDKCall();
+	
+	StartPrepSDKCall(SDKCall_Player);
+	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual, "CBaseEntity::TakeHealth()");
+	PrepSDKCall_AddParameter(SDKType_Float, SDKPass_Plain);
+	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
+	g_SDKCallPlayerTakeHealth = EndPrepSDKCall();
 	
 	delete hGameConf;
 }
@@ -75,4 +85,13 @@ public int Native_UpdatePlayerSpeed(Handle plugin, int nParams) {
 	if (immediate) {
 		ForceSpeedUpdate(client);
 	}
+}
+
+// int(int client, float amount, int bitsHealType = 0);
+public int Native_TakeHealth(Handle plugin, int nParams) {
+	int client = GetNativeCell(1);
+	float amount = GetNativeCell(2);
+	int bitsHealType = GetNativeCell(3);
+	
+	return SDKCall(g_SDKCallPlayerTakeHealth, client, amount, bitsHealType);
 }
