@@ -9,7 +9,9 @@
 #include <sdkhooks>
 #include <sdktools>
 
-#define PLUGIN_VERSION "0.3.0"
+#include <stocksoup/memory>
+
+#define PLUGIN_VERSION "0.4.0"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -25,12 +27,17 @@ Handle g_SDKCallPlayerTakeHealth;
 
 Handle g_SDKCallPlayerSharedGetMaxHealth;
 
+Address offs_CTFPlayer_hMyWearables;
+
 public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	RegPluginLibrary("nosoop_tf2utils");
 	
 	CreateNative("TF2Util_UpdatePlayerSpeed", Native_UpdatePlayerSpeed);
 	CreateNative("TF2Util_TakeHealth", Native_TakeHealth);
 	CreateNative("TF2Util_GetPlayerMaxHealth", Native_GetMaxHealth);
+	
+	CreateNative("TF2Util_GetPlayerWearable", Native_GetPlayerWearable);
+	CreateNative("TF2Util_GetPlayerWearableCount", Native_GetPlayerWearableCount);
 	
 	return APLRes_Success;
 }
@@ -59,6 +66,9 @@ public void OnPluginStart() {
 	PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
 	PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
 	g_SDKCallPlayerSharedGetMaxHealth = EndPrepSDKCall();
+	
+	offs_CTFPlayer_hMyWearables = GameConfGetAddressOffset(hGameConf,
+			"CTFPlayer::m_hMyWearables");
 	
 	delete hGameConf;
 }
@@ -117,4 +127,35 @@ public int Native_GetMaxHealth(Handle plugin, int nParams) {
 	
 	return SDKCall(g_SDKCallPlayerSharedGetMaxHealth, GetEntityAddress(client) + offs_Shared,
 			bIgnoreAttributes, bIgnoreOverheal);
+}
+
+// int(int client, int index);
+public int Native_GetPlayerWearable(Handle plugin, int nParams) {
+	int client = GetNativeCell(1);
+	int index = GetNativeCell(2);
+	
+	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
+	}
+	
+	Address pData = DereferencePointer(GetEntityAddress(client)
+			+ view_as<Address>(offs_CTFPlayer_hMyWearables));
+	return LoadEntityHandleFromAddress(pData + view_as<Address>(0x04 * index));
+}
+
+// int(int client);
+public int Native_GetPlayerWearableCount(Handle plugin, int nParams) {
+	int client = GetNativeCell(1);
+	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
+	}
+	return GetEntData(client, view_as<int>(offs_CTFPlayer_hMyWearables) + 0x0C);
+}
+
+static Address GameConfGetAddressOffset(Handle gamedata, const char[] key) {
+	Address offs = view_as<Address>(GameConfGetOffset(gamedata, key));
+	if (offs == view_as<Address>(-1)) {
+		SetFailState("Failed to get member offset %s", key);
+	}
+	return offs;
 }

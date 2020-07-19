@@ -38,6 +38,17 @@ native int TF2Util_GetPlayerMaxHealth(int client, bool bIgnoreAttributes = false
 		bool bIgnoreOverheal = false);
 
 /**
+ * @return Wearable entity at the given index.
+ * @error Index is negative or out of bounds.
+ */
+native int TF2Util_GetPlayerWearable(int client, int index);
+
+/**
+ * @return Number of items in the player's wearable array.
+ */
+native int TF2Util_GetPlayerWearableCount(int client);
+
+/**
  * Forces an update to the given player's speed.
  * 
  * @param immediate Whether or not the speed is updated immediately.  If this is set to false,

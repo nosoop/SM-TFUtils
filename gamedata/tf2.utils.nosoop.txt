@@ -10,6 +10,16 @@
 				"windows"	"64"
 				"linux"		"65"
 			}
+			
+			// member offsets
+			// any resemblance to the names present in official game code is purely coincidental
+			// (this excludes names visible via sendprops and symbols, of course)
+			"CTFPlayer::m_hMyWearables"
+			{
+				// CUtlVector<EHandle>, currently offsetof(m_flMaxSpeed) - 0x14
+				"linux"		"3540"
+				"windows"	"3520"
+			}
 		}
 		"Signatures"
 		{
