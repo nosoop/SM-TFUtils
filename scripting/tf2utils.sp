@@ -1,5 +1,5 @@
 /**
- * Sourcemod 1.7 Plugin Template
+ * TF2 Utils Shared Plugin
  */
 #pragma semicolon 1
 #include <sourcemod>
@@ -11,7 +11,7 @@
 
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "0.5.0"
+#define PLUGIN_VERSION "0.5.1"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -98,6 +98,8 @@ public void OnMapStart() {
 }
 
 public void OnClientPutInServer(int client) {
+	g_bDeferredSpeedUpdate[client] = false;
+	
 	SDKHook(client, SDKHook_PreThinkPost, OnPreThinkPost);
 }
 
@@ -118,6 +120,10 @@ public int Native_UpdatePlayerSpeed(Handle plugin, int nParams) {
 	int client = GetNativeCell(1);
 	bool immediate = GetNativeCell(2);
 	
+	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
+	}
+	
 	g_bDeferredSpeedUpdate[client] = !immediate;
 	if (immediate) {
 		ForceSpeedUpdate(client);
@@ -130,6 +136,10 @@ public int Native_TakeHealth(Handle plugin, int nParams) {
 	float amount = GetNativeCell(2);
 	int bitsHealType = GetNativeCell(3);
 	
+	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
+	}
+	
 	return SDKCall(g_SDKCallPlayerTakeHealth, client, amount, bitsHealType);
 }
 
@@ -138,6 +148,10 @@ public int Native_GetMaxHealth(Handle plugin, int nParams) {
 	int client = GetNativeCell(1);
 	bool bIgnoreAttributes = !!GetNativeCell(2);
 	bool bIgnoreOverheal = !!GetNativeCell(3);
+	
+	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
+	}
 	
 	Address offs_Shared = view_as<Address>(GetEntSendPropOffs(client, "m_Shared", true));
 	
@@ -152,6 +166,11 @@ public int Native_GetPlayerWearable(Handle plugin, int nParams) {
 	
 	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
 		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
+	}
+	
+	int count = GetEntData(client, view_as<int>(offs_CTFPlayer_hMyWearables) + 0x0C);
+	if (index < 0 || index >= count) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Invalid index %d (count: %d)", index, count);
 	}
 	
 	Address pData = DereferencePointer(GetEntityAddress(client)
@@ -171,21 +190,25 @@ public int Native_GetPlayerWearableCount(Handle plugin, int nParams) {
 // bool(int entity);
 public int Native_IsEntityWeapon(Handle plugin, int nParams) {
 	int entity = GetNativeCell(1);
-	// if (!IsValidEntity(entity)) {
-		// ThrowNativeError(SP_ERROR_NATIVE, "Entity %d (%d) is invalid", entity,
-				// EntRefToEntIndex(entity));
-	// }
-	return SDKCall(g_SDKCallIsEntityWeapon, entity);
+	return IsEntityWeapon(entity);
 }
 
 // int(int entity);
 public int Native_GetWeaponID(Handle plugin, int nParams) {
 	int entity = GetNativeCell(1);
-	if (!SDKCall(g_SDKCallIsEntityWeapon, entity)) {
+	if (!IsEntityWeapon(entity)) {
 		ThrowNativeError(SP_ERROR_NATIVE, "Entity index %d (%d) is not a weapon", entity,
 				EntRefToEntIndex(entity));
 	}
 	return SDKCall(g_SDKCallWeaponGetID, entity);
+}
+
+bool IsEntityWeapon(int entity) {
+	if (!IsValidEntity(entity)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Entity %d (%d) is invalid", entity,
+				EntRefToEntIndex(entity));
+	}
+	return SDKCall(g_SDKCallIsEntityWeapon, entity);
 }
 
 static Address GameConfGetAddressOffset(Handle gamedata, const char[] key) {
