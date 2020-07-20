@@ -11,7 +11,7 @@
 
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "0.4.0"
+#define PLUGIN_VERSION "0.5.0"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -27,6 +27,9 @@ Handle g_SDKCallPlayerTakeHealth;
 
 Handle g_SDKCallPlayerSharedGetMaxHealth;
 
+Handle g_SDKCallIsEntityWeapon;
+Handle g_SDKCallWeaponGetID;
+
 Address offs_CTFPlayer_hMyWearables;
 
 public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
@@ -38,6 +41,9 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	
 	CreateNative("TF2Util_GetPlayerWearable", Native_GetPlayerWearable);
 	CreateNative("TF2Util_GetPlayerWearableCount", Native_GetPlayerWearableCount);
+	
+	CreateNative("TF2Util_IsEntityWeapon", Native_IsEntityWeapon);
+	CreateNative("TF2Util_GetWeaponID", Native_GetWeaponID);
 	
 	return APLRes_Success;
 }
@@ -66,6 +72,16 @@ public void OnPluginStart() {
 	PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
 	PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
 	g_SDKCallPlayerSharedGetMaxHealth = EndPrepSDKCall();
+	
+	StartPrepSDKCall(SDKCall_Entity);
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual, "CBaseEntity::IsBaseCombatWeapon()");
+	PrepSDKCall_SetReturnInfo(SDKType_Bool, SDKPass_Plain);
+	g_SDKCallIsEntityWeapon = EndPrepSDKCall();
+	
+	StartPrepSDKCall(SDKCall_Entity);
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual, "CTFWeaponBase::GetWeaponID()");
+	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
+	g_SDKCallIsEntityWeapon = EndPrepSDKCall();
 	
 	offs_CTFPlayer_hMyWearables = GameConfGetAddressOffset(hGameConf,
 			"CTFPlayer::m_hMyWearables");
@@ -150,6 +166,26 @@ public int Native_GetPlayerWearableCount(Handle plugin, int nParams) {
 		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
 	}
 	return GetEntData(client, view_as<int>(offs_CTFPlayer_hMyWearables) + 0x0C);
+}
+
+// bool(int entity);
+public int Native_IsEntityWeapon(Handle plugin, int nParams) {
+	int entity = GetNativeCell(1);
+	// if (!IsValidEntity(entity)) {
+		// ThrowNativeError(SP_ERROR_NATIVE, "Entity %d (%d) is invalid", entity,
+				// EntRefToEntIndex(entity));
+	// }
+	return SDKCall(g_SDKCallIsEntityWeapon, entity);
+}
+
+// int(int entity);
+public int Native_GetWeaponID(Handle plugin, int nParams) {
+	int entity = GetNativeCell(1);
+	if (!SDKCall(g_SDKCallIsEntityWeapon, entity)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Entity index %d (%d) is not a weapon", entity,
+				EntRefToEntIndex(entity));
+	}
+	return SDKCall(g_SDKCallWeaponGetID, entity);
 }
 
 static Address GameConfGetAddressOffset(Handle gamedata, const char[] key) {

@@ -38,6 +38,21 @@ native int TF2Util_GetPlayerMaxHealth(int client, bool bIgnoreAttributes = false
 		bool bIgnoreOverheal = false);
 
 /**
+ * Returns whether or not the given entity is a weapon.
+ * 
+ * @error Entity is not valid.
+ */
+native bool TF2Util_IsEntityWeapon(int entity);
+
+/**
+ * Returns the weapon entity's weapon ID.  This corresponds to the TF_WEAPON_* weapon codes in
+ * tf2_stocks, *not* the item definition index.
+ * 
+ * @error Entity is not valid or not a weapon.
+ */
+native int TF2Util_GetWeaponID(int entity);
+
+/**
  * @return Wearable entity at the given index.
  * @error Index is negative or out of bounds.
  */

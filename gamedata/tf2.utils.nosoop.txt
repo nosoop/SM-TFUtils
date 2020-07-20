@@ -5,10 +5,20 @@
 		"Offsets"
 		{
 			// virtual offsets
+			"CBaseEntity::IsBaseCombatWeapon()"
+			{
+				"windows"	"86"
+				"linux"		"87"
+			}
 			"CBaseEntity::TakeHealth()"
 			{
 				"windows"	"64"
 				"linux"		"65"
+			}
+			"CTFWeaponBase::GetWeaponID()"
+			{
+				"windows"	"372"
+				"linux"		"378"
 			}
 			
 			// member offsets
