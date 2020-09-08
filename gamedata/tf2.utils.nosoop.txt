@@ -5,6 +5,11 @@
 		"Offsets"
 		{
 			// virtual offsets
+			"CBaseCombatWeapon::GetSlot()"
+			{
+				"windows"	"326"
+				"linux"		"332"
+			}
 			"CBaseEntity::IsBaseCombatWeapon()"
 			{
 				"windows"	"86"

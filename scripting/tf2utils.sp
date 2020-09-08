@@ -11,7 +11,7 @@
 
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "0.5.1"
+#define PLUGIN_VERSION "0.6.0"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -28,6 +28,7 @@ Handle g_SDKCallPlayerTakeHealth;
 Handle g_SDKCallPlayerSharedGetMaxHealth;
 
 Handle g_SDKCallIsEntityWeapon;
+Handle g_SDKCallWeaponGetSlot;
 Handle g_SDKCallWeaponGetID;
 
 Address offs_CTFPlayer_hMyWearables;
@@ -43,6 +44,7 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	CreateNative("TF2Util_GetPlayerWearableCount", Native_GetPlayerWearableCount);
 	
 	CreateNative("TF2Util_IsEntityWeapon", Native_IsEntityWeapon);
+	CreateNative("TF2Util_GetWeaponSlot", Native_GetWeaponSlot);
 	CreateNative("TF2Util_GetWeaponID", Native_GetWeaponID);
 	
 	return APLRes_Success;
@@ -77,6 +79,11 @@ public void OnPluginStart() {
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual, "CBaseEntity::IsBaseCombatWeapon()");
 	PrepSDKCall_SetReturnInfo(SDKType_Bool, SDKPass_Plain);
 	g_SDKCallIsEntityWeapon = EndPrepSDKCall();
+	
+	StartPrepSDKCall(SDKCall_Entity);
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual, "CBaseCombatWeapon::GetSlot()");
+	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
+	g_SDKCallWeaponGetSlot = EndPrepSDKCall();
 	
 	StartPrepSDKCall(SDKCall_Entity);
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual, "CTFWeaponBase::GetWeaponID()");
@@ -195,6 +202,16 @@ public int Native_GetPlayerWearableCount(Handle plugin, int nParams) {
 public int Native_IsEntityWeapon(Handle plugin, int nParams) {
 	int entity = GetNativeCell(1);
 	return IsEntityWeapon(entity);
+}
+
+// int(int entity);
+public int Native_GetWeaponSlot(Handle plugin, int nParams) {
+	int entity = GetNativeCell(1);
+	if (!IsEntityWeapon(entity)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Entity index %d (%d) is not a weapon", entity,
+				EntRefToEntIndex(entity));
+	}
+	return SDKCall(g_SDKCallWeaponGetSlot, entity);
 }
 
 // int(int entity);

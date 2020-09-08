@@ -45,6 +45,13 @@ native int TF2Util_GetPlayerMaxHealth(int client, bool bIgnoreAttributes = false
 native bool TF2Util_IsEntityWeapon(int entity);
 
 /**
+ * Returns the slot for the given weapon entity.
+ * 
+ * @error Entity is not valid or not a weapon.
+ */
+native int TF2Util_GetWeaponSlot(int entity);
+
+/**
  * Returns the weapon entity's weapon ID.  This corresponds to the TF_WEAPON_* weapon codes in
  * tf2_stocks, *not* the item definition index.
  * 
