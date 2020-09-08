@@ -83,8 +83,12 @@ public void OnPluginStart() {
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
 	g_SDKCallIsEntityWeapon = EndPrepSDKCall();
 	
-	offs_CTFPlayer_hMyWearables = GameConfGetAddressOffset(hGameConf,
-			"CTFPlayer::m_hMyWearables");
+	// networked CUtlVector offset support landed in 1.11; try to locate an offset there first
+	offs_CTFPlayer_hMyWearables = FindSendPropInfo("CTFPlayer", "m_hMyWearables");
+	if (offs_CTFPlayer_hMyWearables <= 0) {
+		offs_CTFPlayer_hMyWearables = GameConfGetAddressOffset(hGameConf,
+				"CTFPlayer::m_hMyWearables");
+	}
 	
 	delete hGameConf;
 }
