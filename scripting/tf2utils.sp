@@ -11,7 +11,7 @@
 
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "0.6.0"
+#define PLUGIN_VERSION "0.6.1"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -88,11 +88,12 @@ public void OnPluginStart() {
 	StartPrepSDKCall(SDKCall_Entity);
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual, "CTFWeaponBase::GetWeaponID()");
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
-	g_SDKCallIsEntityWeapon = EndPrepSDKCall();
+	g_SDKCallWeaponGetID = EndPrepSDKCall();
 	
 	// networked CUtlVector offset support landed in 1.11; try to locate an offset there first
-	offs_CTFPlayer_hMyWearables = FindSendPropInfo("CTFPlayer", "m_hMyWearables");
-	if (offs_CTFPlayer_hMyWearables <= 0) {
+	offs_CTFPlayer_hMyWearables =
+			view_as<Address>(FindSendPropInfo("CTFPlayer", "m_hMyWearables"));
+	if (offs_CTFPlayer_hMyWearables <= Address_Null) {
 		offs_CTFPlayer_hMyWearables = GameConfGetAddressOffset(hGameConf,
 				"CTFPlayer::m_hMyWearables");
 	}
