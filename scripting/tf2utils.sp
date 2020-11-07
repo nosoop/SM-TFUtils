@@ -11,7 +11,7 @@
 
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "0.6.1"
+#define PLUGIN_VERSION "0.7.0"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -23,6 +23,7 @@ public Plugin myinfo = {
 Handle g_SDKCallUpdatePlayerSpeed;
 bool g_bDeferredSpeedUpdate[MAXPLAYERS + 1];
 
+Handle g_SDKCallPlayerGetMaxAmmo;
 Handle g_SDKCallPlayerTakeHealth;
 
 Handle g_SDKCallPlayerSharedGetMaxHealth;
@@ -39,6 +40,7 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	CreateNative("TF2Util_UpdatePlayerSpeed", Native_UpdatePlayerSpeed);
 	CreateNative("TF2Util_TakeHealth", Native_TakeHealth);
 	CreateNative("TF2Util_GetPlayerMaxHealth", Native_GetMaxHealth);
+	CreateNative("TF2Util_GetPlayerMaxAmmo", Native_GetMaxAmmo);
 	
 	CreateNative("TF2Util_GetPlayerWearable", Native_GetPlayerWearable);
 	CreateNative("TF2Util_GetPlayerWearableCount", Native_GetPlayerWearableCount);
@@ -66,6 +68,13 @@ public void OnPluginStart() {
 	PrepSDKCall_AddParameter(SDKType_Float, SDKPass_Plain);
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
 	g_SDKCallPlayerTakeHealth = EndPrepSDKCall();
+	
+	StartPrepSDKCall(SDKCall_Player);
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CTFPlayer::GetMaxAmmo()");
+	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
+	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
+	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
+	g_SDKCallPlayerGetMaxAmmo = EndPrepSDKCall();
 	
 	StartPrepSDKCall(SDKCall_Raw);
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
@@ -153,6 +162,19 @@ public int Native_TakeHealth(Handle plugin, int nParams) {
 	}
 	
 	return SDKCall(g_SDKCallPlayerTakeHealth, client, amount, bitsHealType);
+}
+
+// int(int client, int ammoIndex, TFClassType playerClass = TFClass_Unknown);
+public int Native_GetMaxAmmo(Handle plugin, int nParams) {
+	int client = GetNativeCell(1);
+	int ammoIndex = GetNativeCell(2);
+	int playerClass = GetNativeCell(3);
+	
+	if (playerClass < 1 || playerClass > 9) {
+		playerClass = -1;
+	}
+	
+	return SDKCall(g_SDKCallPlayerGetMaxAmmo, client, ammoIndex, playerClass);
 }
 
 // int(int client, bool bIgnoreAttributes, bool bIgnoreOverheal);

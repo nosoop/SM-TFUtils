@@ -32,6 +32,17 @@
 native int TF2Util_TakeHealth(int client, float flHealth, int bitsHealType = 0);
 
 /**
+ * Returns the maximum amount of ammo for the given ammo type.
+ * 
+ * @param iAmmoIndex      Ammo type.
+ * @param playerClass     Player class.  If TFClass_Unknown, use the player's current class.
+ * 
+ * @return Maximum amount of ammo.
+ */
+native int TF2Util_GetPlayerMaxAmmo(int client, int iAmmoIndex,
+		TFClassType playerClass = TFClass_Unknown);
+
+/**
  * Returns the current maximum health of the player.
  */
 native int TF2Util_GetPlayerMaxHealth(int client, bool bIgnoreAttributes = false,

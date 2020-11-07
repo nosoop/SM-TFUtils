@@ -38,6 +38,12 @@
 		}
 		"Signatures"
 		{
+			"CTFPlayer::GetMaxAmmo()"
+			{
+				"library"		"server"
+				"linux"			"@_ZN9CTFPlayer10GetMaxAmmoEii"
+				"windows"		"\x55\x8B\xEC\x8B\x45\x0C\x56\x57\x8B\xF9\x83\xF8\xFF"
+			}
 			"CTFPlayer::TeamFortress_SetSpeed()"
 			{
 				// function is x-ref to CTFPlayer::TeamFortress_CalculateMaxSpeed
