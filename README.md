@@ -23,3 +23,7 @@ These include:
 - [Econ Data][], which provides low-level read access to schema properties
 - [TF2 Wearable Tools][], which provides some functionality to access currently equipped
 wearable entities or attach new ones.
+
+[TF2Attributes]: https://github.com/nosoop/tf2attributes
+[Econ Data]: https://github.com/nosoop/SM-TFEconData
+[TF2 Wearable Tools]: https://github.com/nosoop/sourcemod-tf2wearables
