@@ -11,7 +11,7 @@
 
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "0.7.0"
+#define PLUGIN_VERSION "0.8.0"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -31,6 +31,7 @@ Handle g_SDKCallPlayerSharedGetMaxHealth;
 Handle g_SDKCallIsEntityWeapon;
 Handle g_SDKCallWeaponGetSlot;
 Handle g_SDKCallWeaponGetID;
+Handle g_SDKCallWeaponGetMaxClip;
 
 Address offs_CTFPlayer_hMyWearables;
 
@@ -48,6 +49,7 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	CreateNative("TF2Util_IsEntityWeapon", Native_IsEntityWeapon);
 	CreateNative("TF2Util_GetWeaponSlot", Native_GetWeaponSlot);
 	CreateNative("TF2Util_GetWeaponID", Native_GetWeaponID);
+	CreateNative("TF2Util_GetWeaponMaxClip", Native_GetWeaponMaxClip);
 	
 	return APLRes_Success;
 }
@@ -98,6 +100,11 @@ public void OnPluginStart() {
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual, "CTFWeaponBase::GetWeaponID()");
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
 	g_SDKCallWeaponGetID = EndPrepSDKCall();
+	
+	StartPrepSDKCall(SDKCall_Entity);
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual, "CTFWeaponBase::GetMaxClip1()");
+	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
+	g_SDKCallWeaponGetMaxClip = EndPrepSDKCall();
 	
 	// networked CUtlVector offset support landed in 1.11; try to locate an offset there first
 	offs_CTFPlayer_hMyWearables =
@@ -245,6 +252,16 @@ public int Native_GetWeaponID(Handle plugin, int nParams) {
 				EntRefToEntIndex(entity));
 	}
 	return SDKCall(g_SDKCallWeaponGetID, entity);
+}
+
+// int(int entity);
+public int Native_GetWeaponMaxClip(Handle plugin, int nParams) {
+	int entity = GetNativeCell(1);
+	if (!IsEntityWeapon(entity)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Entity index %d (%d) is not a weapon", entity,
+				EntRefToEntIndex(entity));
+	}
+	return SDKCall(g_SDKCallWeaponGetMaxClip, entity);
 }
 
 bool IsEntityWeapon(int entity) {

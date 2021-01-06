@@ -20,6 +20,11 @@
 				"windows"	"64"
 				"linux"		"65"
 			}
+			"CTFWeaponBase::GetMaxClip1()"
+			{
+				"windows"	"317"
+				"linux"		"323"
+			}
 			"CTFWeaponBase::GetWeaponID()"
 			{
 				"windows"	"372"

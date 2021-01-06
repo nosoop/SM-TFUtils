@@ -71,6 +71,13 @@ native int TF2Util_GetWeaponSlot(int entity);
 native int TF2Util_GetWeaponID(int entity);
 
 /**
+ * Returns the weapon entity's maximum clip.
+ * 
+ * @error Entity is not valid or not a weapon.
+ */
+native int TF2Util_GetWeaponMaxClip(int entity);
+
+/**
  * @return Wearable entity at the given index.
  * @error Index is negative or out of bounds.
  */
