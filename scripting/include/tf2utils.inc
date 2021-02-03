@@ -49,6 +49,11 @@ native int TF2Util_GetPlayerMaxHealth(int client, bool bIgnoreAttributes = false
 		bool bIgnoreOverheal = false);
 
 /**
+ * Returns the player's shoot position.
+ */
+native void TF2Util_GetPlayerShootPosition(int client, float result[3]);
+
+/**
  * Returns whether or not the given entity is a weapon.
  * 
  * @error Entity is not valid.

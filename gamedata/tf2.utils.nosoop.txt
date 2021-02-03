@@ -5,6 +5,11 @@
 		"Offsets"
 		{
 			// virtual offsets
+			"CBaseCombatCharacter::Weapon_ShootPosition()"
+			{
+				"windows"	"268"
+				"linux"		"269"
+			}
 			"CBaseCombatWeapon::GetSlot()"
 			{
 				"windows"	"326"

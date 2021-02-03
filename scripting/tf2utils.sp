@@ -11,7 +11,7 @@
 
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "0.8.0"
+#define PLUGIN_VERSION "0.9.0"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -25,6 +25,7 @@ bool g_bDeferredSpeedUpdate[MAXPLAYERS + 1];
 
 Handle g_SDKCallPlayerGetMaxAmmo;
 Handle g_SDKCallPlayerTakeHealth;
+Handle g_SDKCallPlayerGetShootPosition;
 
 Handle g_SDKCallPlayerSharedGetMaxHealth;
 
@@ -50,6 +51,8 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	CreateNative("TF2Util_GetWeaponSlot", Native_GetWeaponSlot);
 	CreateNative("TF2Util_GetWeaponID", Native_GetWeaponID);
 	CreateNative("TF2Util_GetWeaponMaxClip", Native_GetWeaponMaxClip);
+	
+	CreateNative("TF2Util_GetPlayerShootPosition", Native_GetPlayerShootPosition);
 	
 	return APLRes_Success;
 }
@@ -77,6 +80,12 @@ public void OnPluginStart() {
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
 	g_SDKCallPlayerGetMaxAmmo = EndPrepSDKCall();
+	
+	StartPrepSDKCall(SDKCall_Player);
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual,
+			"CBaseCombatCharacter::Weapon_ShootPosition()");
+	PrepSDKCall_SetReturnInfo(SDKType_Vector, SDKPass_ByValue);
+	g_SDKCallPlayerGetShootPosition = EndPrepSDKCall();
 	
 	StartPrepSDKCall(SDKCall_Raw);
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
@@ -226,6 +235,17 @@ public int Native_GetPlayerWearableCount(Handle plugin, int nParams) {
 		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
 	}
 	return GetEntData(client, view_as<int>(offs_CTFPlayer_hMyWearables) + 0x0C);
+}
+
+// void(int client, float result[3]);
+public int Native_GetPlayerShootPosition(Handle plugin, int nParams) {
+	int client = GetNativeCell(1);
+	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
+	}
+	float vecResult[3];
+	SDKCall(g_SDKCallPlayerGetShootPosition, client, vecResult);
+	SetNativeArray(2, vecResult, sizeof(vecResult));
 }
 
 // bool(int entity);
