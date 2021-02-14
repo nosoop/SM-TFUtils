@@ -103,6 +103,21 @@ native int TF2Util_GetPlayerWearableCount(int client);
  */
 native void TF2Util_UpdatePlayerSpeed(int client, bool immediate = false);
 
+/**
+ * Returns whether or not a position / entity is in an active respawn room.  If an entity is
+ * passed in, this also checks if the entity is touching an active respawn room, instead of just
+ * the given position.
+ * 
+ * @param position             A position to check.  Should be the center / origin of an entity.
+ * @param entity               An optional entity to check.
+ * @param bTouchingSameTeam    Whether or not the respawn room must either match the entity's
+ *                             team, or not be assigned to a team.  Always treated as true if
+ *                             the position is in an active spawn room.  Has no effect if no
+ *                             entity is provided.
+ */
+native bool TF2Util_IsPointInRespawnRoom(const float[3] position,
+		int entity = INVALID_ENT_REFERENCE, bool bRestrictToSameTeam = false);
+
 public SharedPlugin __pl_tf2utils = {
 	name = "nosoop_tf2utils",
 	file = "tf2utils.smx",

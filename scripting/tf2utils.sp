@@ -11,7 +11,7 @@
 
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "0.9.0"
+#define PLUGIN_VERSION "0.10.0"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -34,6 +34,8 @@ Handle g_SDKCallWeaponGetSlot;
 Handle g_SDKCallWeaponGetID;
 Handle g_SDKCallWeaponGetMaxClip;
 
+Handle g_SDKCallPointInRespawnRoom;
+
 Address offs_CTFPlayer_hMyWearables;
 
 public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
@@ -53,6 +55,8 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	CreateNative("TF2Util_GetWeaponMaxClip", Native_GetWeaponMaxClip);
 	
 	CreateNative("TF2Util_GetPlayerShootPosition", Native_GetPlayerShootPosition);
+	
+	CreateNative("TF2Util_IsPointInRespawnRoom", Native_IsPointInRespawnRoom);
 	
 	return APLRes_Success;
 }
@@ -114,6 +118,14 @@ public void OnPluginStart() {
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual, "CTFWeaponBase::GetMaxClip1()");
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
 	g_SDKCallWeaponGetMaxClip = EndPrepSDKCall();
+	
+	StartPrepSDKCall(SDKCall_Static);
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "PointInRespawnRoom()");
+	PrepSDKCall_SetReturnInfo(SDKType_Bool, SDKPass_Plain);
+	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer, VDECODE_FLAG_ALLOWNULL);
+	PrepSDKCall_AddParameter(SDKType_Vector, SDKPass_ByRef);
+	PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
+	g_SDKCallPointInRespawnRoom = EndPrepSDKCall();
 	
 	// networked CUtlVector offset support landed in 1.11; try to locate an offset there first
 	offs_CTFPlayer_hMyWearables =
@@ -282,6 +294,26 @@ public int Native_GetWeaponMaxClip(Handle plugin, int nParams) {
 				EntRefToEntIndex(entity));
 	}
 	return SDKCall(g_SDKCallWeaponGetMaxClip, entity);
+}
+
+// bool(const float[3] position, int entity, bool bRestrictToSameTeam)
+public int Native_IsPointInRespawnRoom(Handle plugin, int nParams) {
+	if (IsNativeParamNullVector(1)) {
+		return ThrowNativeError(SP_ERROR_NATIVE, "Cannot use NULL_VECTOR as origin");
+	}
+	
+	float origin[3];
+	GetNativeArray(1, origin, sizeof(origin));
+	
+	int entity = GetNativeCell(2);
+	if (entity != INVALID_ENT_REFERENCE && !IsValidEntity(entity)) {
+		return ThrowNativeError(SP_ERROR_NATIVE, "Entity %d (%d) is invalid", entity,
+				EntRefToEntIndex(entity));
+	}
+	
+	bool bRestrictToSameTeam = GetNativeCell(3);
+	
+	return SDKCall(g_SDKCallPointInRespawnRoom, entity, origin, bRestrictToSameTeam);
 }
 
 bool IsEntityWeapon(int entity) {
