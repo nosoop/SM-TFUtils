@@ -1,8 +1,5 @@
 # TF2 Utils
 
-> This is a pre-alpha.  I have some more chunks on-disk that I intend to commit, so compiles may
-> not be as well-tested as they normally would be.
-
 SourceMod utility natives for Team Fortress 2.  Mainly focused around things that require
 gamedata that may break during updates, including calls to game functions and raw memory
 accessors that aren't already in some other library.
