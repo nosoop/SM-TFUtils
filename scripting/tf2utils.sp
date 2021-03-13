@@ -11,7 +11,7 @@
 
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "0.10.0"
+#define PLUGIN_VERSION "0.11.0"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -26,6 +26,7 @@ bool g_bDeferredSpeedUpdate[MAXPLAYERS + 1];
 Handle g_SDKCallPlayerGetMaxAmmo;
 Handle g_SDKCallPlayerTakeHealth;
 Handle g_SDKCallPlayerGetShootPosition;
+Handle g_SDKCallPlayerGetEntityForLoadoutSlot;
 
 Handle g_SDKCallPlayerSharedGetMaxHealth;
 
@@ -33,6 +34,9 @@ Handle g_SDKCallIsEntityWeapon;
 Handle g_SDKCallWeaponGetSlot;
 Handle g_SDKCallWeaponGetID;
 Handle g_SDKCallWeaponGetMaxClip;
+
+Handle g_SDKCallIsEntityWearable;
+Handle g_SDKCallPlayerEquipWearable;
 
 Handle g_SDKCallPointInRespawnRoom;
 
@@ -46,13 +50,17 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	CreateNative("TF2Util_GetPlayerMaxHealth", Native_GetMaxHealth);
 	CreateNative("TF2Util_GetPlayerMaxAmmo", Native_GetMaxAmmo);
 	
+	CreateNative("TF2Util_IsEntityWearable", Native_IsEntityWearable);
 	CreateNative("TF2Util_GetPlayerWearable", Native_GetPlayerWearable);
 	CreateNative("TF2Util_GetPlayerWearableCount", Native_GetPlayerWearableCount);
+	CreateNative("TF2Util_EquipPlayerWearable", Native_EquipPlayerWearable);
 	
 	CreateNative("TF2Util_IsEntityWeapon", Native_IsEntityWeapon);
 	CreateNative("TF2Util_GetWeaponSlot", Native_GetWeaponSlot);
 	CreateNative("TF2Util_GetWeaponID", Native_GetWeaponID);
 	CreateNative("TF2Util_GetWeaponMaxClip", Native_GetWeaponMaxClip);
+	
+	CreateNative("TF2Util_GetPlayerLoadoutEntity", Native_GetPlayerLoadoutEntity);
 	
 	CreateNative("TF2Util_GetPlayerShootPosition", Native_GetPlayerShootPosition);
 	
@@ -105,6 +113,11 @@ public void OnPluginStart() {
 	g_SDKCallIsEntityWeapon = EndPrepSDKCall();
 	
 	StartPrepSDKCall(SDKCall_Entity);
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual, "CBaseEntity::IsWearable()");
+	PrepSDKCall_SetReturnInfo(SDKType_Bool, SDKPass_Plain);
+	g_SDKCallIsEntityWearable = EndPrepSDKCall();
+	
+	StartPrepSDKCall(SDKCall_Entity);
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual, "CBaseCombatWeapon::GetSlot()");
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
 	g_SDKCallWeaponGetSlot = EndPrepSDKCall();
@@ -118,6 +131,19 @@ public void OnPluginStart() {
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual, "CTFWeaponBase::GetMaxClip1()");
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
 	g_SDKCallWeaponGetMaxClip = EndPrepSDKCall();
+	
+	StartPrepSDKCall(SDKCall_Player);
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature,
+			"CTFPlayer::GetEntityForLoadoutSlot()");
+	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
+	PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
+	PrepSDKCall_SetReturnInfo(SDKType_CBaseEntity, SDKPass_Pointer);
+	g_SDKCallPlayerGetEntityForLoadoutSlot = EndPrepSDKCall();
+	
+	StartPrepSDKCall(SDKCall_Player);
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual, "CTFPlayer::EquipWearable()");
+	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
+	g_SDKCallPlayerEquipWearable = EndPrepSDKCall();
 	
 	StartPrepSDKCall(SDKCall_Static);
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "PointInRespawnRoom()");
@@ -221,6 +247,20 @@ public int Native_GetMaxHealth(Handle plugin, int nParams) {
 			bIgnoreAttributes, bIgnoreOverheal);
 }
 
+public int Native_EquipPlayerWearable(Handle plugin, int numParams) {
+	int client = GetNativeCell(1);
+	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
+	}
+	
+	int wearable = GetNativeCell(2);
+	if (!IsEntityWearable(wearable)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Entity index %d is not a wearable",
+				EntRefToEntIndex(wearable));
+	}
+	SDKCall(g_SDKCallPlayerEquipWearable, client, wearable);
+}
+
 // int(int client, int index);
 public int Native_GetPlayerWearable(Handle plugin, int nParams) {
 	int client = GetNativeCell(1);
@@ -264,6 +304,12 @@ public int Native_GetPlayerShootPosition(Handle plugin, int nParams) {
 public int Native_IsEntityWeapon(Handle plugin, int nParams) {
 	int entity = GetNativeCell(1);
 	return IsEntityWeapon(entity);
+}
+
+// bool(int entity);
+public int Native_IsEntityWearable(Handle plugin, int nParams) {
+	int entity = GetNativeCell(1);
+	return IsEntityWearable(entity);
 }
 
 // int(int entity);
@@ -316,12 +362,32 @@ public int Native_IsPointInRespawnRoom(Handle plugin, int nParams) {
 	return SDKCall(g_SDKCallPointInRespawnRoom, entity, origin, bRestrictToSameTeam);
 }
 
+// int(int client, int loadoutSlot, bool includeWearableWeapons);
+int Native_GetPlayerLoadoutEntity(Handle plugin, int numParams) {
+	int client = GetNativeCell(1);
+	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
+	}
+	int loadoutSlot = GetNativeCell(2);
+	bool check_wearable = numParams <3 ? true : GetNativeCell(3);
+	
+	return SDKCall(g_SDKCallPlayerGetEntityForLoadoutSlot, client, loadoutSlot, check_wearable);
+}
+
 bool IsEntityWeapon(int entity) {
 	if (!IsValidEntity(entity)) {
 		ThrowNativeError(SP_ERROR_NATIVE, "Entity %d (%d) is invalid", entity,
 				EntRefToEntIndex(entity));
 	}
 	return SDKCall(g_SDKCallIsEntityWeapon, entity);
+}
+
+bool IsEntityWearable(int entity) {
+	if (!IsValidEntity(entity)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Entity %d (%d) is invalid", entity,
+				EntRefToEntIndex(entity));
+	}
+	return SDKCall(g_SDKCallIsEntityWearable, entity);
 }
 
 static Address GameConfGetAddressOffset(Handle gamedata, const char[] key) {

@@ -61,6 +61,13 @@ native void TF2Util_GetPlayerShootPosition(int client, float result[3]);
 native bool TF2Util_IsEntityWeapon(int entity);
 
 /**
+ * Returns whether or not the given entity is a wearable.
+ * 
+ * @error Entity is not valid.
+ */
+native bool TF2Util_IsEntityWearable(int entity);
+
+/**
  * Returns the slot for the given weapon entity.
  * 
  * @error Entity is not valid or not a weapon.
@@ -94,6 +101,26 @@ native int TF2Util_GetPlayerWearable(int client, int index);
 native int TF2Util_GetPlayerWearableCount(int client);
 
 /**
+ * If `includeWearableWeapons` is true, weapon slots (primary, secondary, melee, utility,
+ * building, pda, pda2) are also checked for wearable items.  Otherwise, non-wearables are
+ * ignored.
+ * 
+ * Note that this validates that the player is using a class that can equip the given item; any
+ * items not applicable to the class are ignored.
+ * 
+ * @return Entity on the given client occupying the given loadout slot.
+ */
+native int TF2Util_GetPlayerLoadoutEntity(int client, int loadoutSlot,
+		bool includeWearableWeapons = true);
+
+/**
+ * Equips the given wearable entity onto the given client.
+ * 
+ * @error Client is invalid or entity is not a wearable.
+ */
+native void TF2Util_EquipPlayerWearable(int client, int wearable);
+
+/**
  * Forces an update to the given player's speed.
  * 
  * @param immediate Whether or not the speed is updated immediately.  If this is set to false,
@@ -117,6 +144,13 @@ native void TF2Util_UpdatePlayerSpeed(int client, bool immediate = false);
  */
 native bool TF2Util_IsPointInRespawnRoom(const float[3] position,
 		int entity = INVALID_ENT_REFERENCE, bool bRestrictToSameTeam = false);
+
+// compile-time compatibility shim for tf2wearables natives
+#if defined USE_TF2WEARABLE_FUNCTION_SHIMS
+	#define TF2_GetPlayerLoadoutSlot    TF2Util_GetPlayerLoadoutEntity
+	#define TF2_EquipPlayerWearable     TF2Util_EquipPlayerWearable
+	#define TF2_IsWearable              TF2Util_IsEntityWearable
+#endif
 
 public SharedPlugin __pl_tf2utils = {
 	name = "nosoop_tf2utils",

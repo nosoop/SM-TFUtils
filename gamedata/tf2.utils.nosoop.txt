@@ -20,6 +20,12 @@
 				"windows"	"86"
 				"linux"		"87"
 			}
+			"CBaseEntity::IsWearable()"
+			{
+				"windows"	"87"
+				"linux"		"88"
+				"mac"		"88"
+			}
 			"CBaseEntity::TakeHealth()"
 			{
 				"windows"	"64"
@@ -35,6 +41,12 @@
 				"windows"	"372"
 				"linux"		"378"
 			}
+			"CTFPlayer::EquipWearable()"
+			{
+				"windows"	"430"
+				"linux"		"431"
+				"mac"		"431"
+			}
 			
 			// member offsets
 			// any resemblance to the names present in official game code is purely coincidental
@@ -48,6 +60,14 @@
 		}
 		"Signatures"
 		{
+			"CTFPlayer::GetEntityForLoadoutSlot()"
+			{
+				// called a few blocks after function with unique x-ref string "enable_misc2_noisemaker"
+				"library"	"server"
+				"windows"	"\x55\x8b\xec\x51\x53\x8b\x5d\x2a\x57\x8b\xf9\x89\x7d\x2a\x83\xfb\x07\x74\x2a\x83\xfb\x08\x74\x2a\x83\xfb\x09\x74\x2a\x83\xfb\x0a\x74\x2a"
+				"linux"		"@_ZN9CTFPlayer23GetEntityForLoadoutSlotEib"
+				"mac"		"@_ZN9CTFPlayer23GetEntityForLoadoutSlotEib"
+			}
 			"CTFPlayer::GetMaxAmmo()"
 			{
 				"library"		"server"
