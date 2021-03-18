@@ -40,10 +40,3 @@ The following plugins have some of their functionality merged in.
 wearable entities or attach new ones.
 
 [TF2 Wearable Tools]: https://github.com/nosoop/sourcemod-tf2wearables
-
-## Merged plugins
-
-The following plugins have some of their functionality merged in.
-
-- [TF2 Wearable Tools][], which provides some functionality to access currently equipped
-wearable entities or attach new ones.
