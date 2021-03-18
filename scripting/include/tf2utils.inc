@@ -32,7 +32,7 @@
 native int TF2Util_TakeHealth(int client, float flHealth, int bitsHealType = 0);
 
 /**
- * Returns the maximum amount of ammo for the given ammo type.
+ * Returns the maximum amount of ammo a player can hold for the given ammo type.
  * 
  * @param iAmmoIndex      Ammo type.
  * @param playerClass     Player class.  If TFClass_Unknown, use the player's current class.
@@ -123,10 +123,11 @@ native void TF2Util_EquipPlayerWearable(int client, int wearable);
 /**
  * Forces an update to the given player's speed.
  * 
- * @param immediate Whether or not the speed is updated immediately.  If this is set to false,
- * the call will be defered in a way that any number of calls to this native in the same frame
- * will only result in at most one update more than the number of immediate calls (intended to
- * reduce the number of calls forwarded to plugins that detour the maximum speed calculation).
+ * @param immediate    Whether or not the speed is updated immediately.  If this is set to
+ *                     false, the call will be defered and batched so all non-immediate calls
+ *                     will only trigger one update to the player's speed at most.  (This is
+ *                     designed to accomodate plugins using detours on player speed
+ *                     calculations.)
  */
 native void TF2Util_UpdatePlayerSpeed(int client, bool immediate = false);
 
