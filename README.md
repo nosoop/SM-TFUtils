@@ -18,9 +18,20 @@ These include:
 
 - [TF2Attributes][], which handles runtime application of attributes on players and weapons
 - [Econ Data][], which provides low-level read access to schema properties
-- [TF2 Wearable Tools][], which provides some functionality to access currently equipped
-wearable entities or attach new ones.
+- [DamageInfo Tools][], which provides a small set of functionality to deal with
+`CTakeDamageInfo` and `CTFRadiusDamageInfo` types.  (Requires [Source Scramble][].)
+- [TF2-API][], a set of global hooks for TF2.  (Requires [DHooks][].)
+- [TakeHealth Proxy][], a single-purpose plugin to override the amount of health given to a
+player.  (Requires [DHooks][].)
+- [Calculate Max Speed Detour][], a single-purpose extension to override the player's max speed.
 
 [TF2Attributes]: https://github.com/nosoop/tf2attributes
 [Econ Data]: https://github.com/nosoop/SM-TFEconData
 [TF2 Wearable Tools]: https://github.com/nosoop/sourcemod-tf2wearables
+
+## Merged plugins
+
+The following plugins have some of their functionality merged in.
+
+- [TF2 Wearable Tools][], which provides some functionality to access currently equipped
+wearable entities or attach new ones.
