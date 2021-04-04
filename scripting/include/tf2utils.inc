@@ -102,8 +102,8 @@ native int TF2Util_GetPlayerWearableCount(int client);
 
 /**
  * If `includeWearableWeapons` is true, weapon slots (primary, secondary, melee, utility,
- * building, pda, pda2) are also checked for wearable items.  Otherwise, non-wearables are
- * ignored.
+ * building, pda, pda2) are also checked for wearable items.  Otherwise, wearables in those
+ * slots (Sniper / Demoman shields) are ignored.
  * 
  * Note that this validates that the player is using a class that can equip the given item; any
  * items not applicable to the class are ignored.
