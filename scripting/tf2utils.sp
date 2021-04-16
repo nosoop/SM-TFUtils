@@ -60,7 +60,7 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	CreateNative("TF2Util_GetPlayerMaxHealth", Native_GetMaxHealth);
 	CreateNative("TF2Util_GetPlayerMaxAmmo", Native_GetMaxAmmo);
 	
-	CreateNative("TF2Util_GetPlayerConditionCount", Native_GetPlayerConditionCount);
+	CreateNative("TF2Util_GetConditionCount", Native_GetConditionCount);
 	CreateNative("TF2Util_GetPlayerConditionDuration", Native_GetPlayerConditionDuration);
 	CreateNative("TF2Util_SetPlayerConditionDuration", Native_SetPlayerConditionDuration);
 	CreateNative("TF2Util_GetPlayerConditionProvider", Native_GetPlayerConditionProvider);
@@ -425,7 +425,7 @@ int Native_GetPlayerLoadoutEntity(Handle plugin, int numParams) {
 }
 
 // int();
-int Native_GetPlayerConditionCount(Handle plugin, int numParams) {
+int Native_GetConditionCount(Handle plugin, int numParams) {
 	return g_nConditions;
 }
 
