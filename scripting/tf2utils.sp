@@ -7,11 +7,11 @@
 #pragma newdecls required
 
 #include <sdkhooks>
-#include <sdktools>
+#include <tf2_stocks>
 
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "0.11.0"
+#define PLUGIN_VERSION "0.12.0"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -42,6 +42,16 @@ Handle g_SDKCallPointInRespawnRoom;
 
 Address offs_CTFPlayer_hMyWearables;
 
+Address offs_CTFPlayerShared_flBurnDuration;
+Address offs_CTFPlayerShared_ConditionData;
+
+Address offs_TFCondInfo_flDuration;
+Address offs_TFCondInfo_hProvider;
+
+int sizeof_TFCondInfo;
+
+int g_nConditions;
+
 public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	RegPluginLibrary("nosoop_tf2utils");
 	
@@ -49,6 +59,14 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	CreateNative("TF2Util_TakeHealth", Native_TakeHealth);
 	CreateNative("TF2Util_GetPlayerMaxHealth", Native_GetMaxHealth);
 	CreateNative("TF2Util_GetPlayerMaxAmmo", Native_GetMaxAmmo);
+	
+	CreateNative("TF2Util_GetPlayerConditionCount", Native_GetPlayerConditionCount);
+	CreateNative("TF2Util_GetPlayerConditionDuration", Native_GetPlayerConditionDuration);
+	CreateNative("TF2Util_SetPlayerConditionDuration", Native_SetPlayerConditionDuration);
+	CreateNative("TF2Util_GetPlayerConditionProvider", Native_GetPlayerConditionProvider);
+	CreateNative("TF2Util_SetPlayerConditionProvider", Native_SetPlayerConditionProvider);
+	CreateNative("TF2Util_GetPlayerBurnDuration", Native_GetPlayerBurnDuration);
+	CreateNative("TF2Util_SetPlayerBurnDuration", Native_SetPlayerBurnDuration);
 	
 	CreateNative("TF2Util_IsEntityWearable", Native_IsEntityWearable);
 	CreateNative("TF2Util_GetPlayerWearable", Native_GetPlayerWearable);
@@ -159,6 +177,38 @@ public void OnPluginStart() {
 	if (offs_CTFPlayer_hMyWearables <= Address_Null) {
 		offs_CTFPlayer_hMyWearables = GameConfGetAddressOffset(hGameConf,
 				"CTFPlayer::m_hMyWearables");
+	}
+	
+	// TODO: use FindSendPropInfo("CTFPlayer", "m_ConditionData")
+	if (offs_CTFPlayerShared_ConditionData <= Address_Null) {
+		offs_CTFPlayerShared_ConditionData = GameConfGetAddressOffset(hGameConf,
+				"CTFPlayerShared::m_ConditionData");
+	}
+	
+	offs_CTFPlayerShared_flBurnDuration = GameConfGetAddressOffset(hGameConf,
+			"CTFPlayerShared::m_flBurnDuration");
+	
+	sizeof_TFCondInfo = GameConfGetOffset(hGameConf, "sizeof(TFCondInfo_t)");
+	
+	offs_TFCondInfo_flDuration = GameConfGetAddressOffset(hGameConf,
+			"TFCondInfo_t::m_flDuration");
+	
+	offs_TFCondInfo_hProvider = GameConfGetAddressOffset(hGameConf,
+			"TFCondInfo_t::m_hProvider");
+	
+	Address pNumConds = GameConfGetAddress(hGameConf, "&TF_COND_LAST");
+	if (!pNumConds) {
+		LogError("Could not determine location to read TF_COND_LAST from.  "
+				... "Condition bounds checking will produce false positives and condition "
+				... "count native will report incorrect values.");
+		g_nConditions = 0xFF;
+	} else if (!(g_nConditions = LoadFromAddress(pNumConds, NumberType_Int32))
+			|| g_nConditions != g_nConditions & 0xFF) {
+		// we expect the value to be within [1, 255]; if it isn't, then our address is invalid
+		LogError("TF_COND_LAST is not within expected bounds (found %08x).  "
+				... "Condition bounds checking will produce false positives and condition "
+				... "count native will report incorrect values.", g_nConditions);
+		g_nConditions = 0xFF;
 	}
 	
 	delete hGameConf;
@@ -374,6 +424,99 @@ int Native_GetPlayerLoadoutEntity(Handle plugin, int numParams) {
 	return SDKCall(g_SDKCallPlayerGetEntityForLoadoutSlot, client, loadoutSlot, check_wearable);
 }
 
+// int();
+int Native_GetPlayerConditionCount(Handle plugin, int numParams) {
+	return g_nConditions;
+}
+
+// float(int client, TFCond cond);
+any Native_GetPlayerConditionDuration(Handle plugin, int numParams) {
+	int client = GetNativeCell(1);
+	TFCond cond = GetNativeCell(2);
+	
+	if (!IsConditionValid(cond)) {
+		return ThrowNativeError(SP_ERROR_NATIVE, "Condition index %d is invalid", cond);
+	} else if (!TF2_IsPlayerInCondition(client, cond)) {
+		return 0.0;
+	}
+	
+	Address pData = GetConditionData(client, cond);
+	return LoadFromAddress(pData + offs_TFCondInfo_flDuration, NumberType_Int32);
+}
+
+// void(int client, TFCond cond, float duration);
+any Native_SetPlayerConditionDuration(Handle plugin, int numParams) {
+	int client = GetNativeCell(1);
+	TFCond cond = GetNativeCell(2);
+	float duration = GetNativeCell(3);
+	
+	if (!IsConditionValid(cond)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Condition index %d is invalid", cond);
+	} else if (!TF2_IsPlayerInCondition(client, cond)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Player is not in condition %d", cond);
+	}
+	
+	Address pData = GetConditionData(client, cond);
+	StoreToAddress(pData + offs_TFCondInfo_flDuration, view_as<any>(duration),
+			NumberType_Int32);
+}
+
+// int(int client, TFCond cond);
+any Native_GetPlayerConditionProvider(Handle plugin, int numParams) {
+	int client = GetNativeCell(1);
+	TFCond cond = GetNativeCell(2);
+	
+	if (!IsConditionValid(cond)) {
+		return ThrowNativeError(SP_ERROR_NATIVE, "Condition index %d is invalid", cond);
+	} else if (!TF2_IsPlayerInCondition(client, cond)) {
+		return INVALID_ENT_REFERENCE;
+	}
+	
+	Address pData = GetConditionData(client, cond);
+	return LoadEntityHandleFromAddress(pData + offs_TFCondInfo_hProvider);
+}
+
+// void(int client, TFCond cond, int provider);
+any Native_SetPlayerConditionProvider(Handle plugin, int numParams) {
+	int client = GetNativeCell(1);
+	TFCond cond = GetNativeCell(2);
+	int provider = GetNativeCell(3);
+	
+	if (!IsConditionValid(cond)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Condition index %d is invalid", cond);
+	} else if (!TF2_IsPlayerInCondition(client, cond)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Player is not in condition %d", cond);
+	} else if (!IsValidEntity(provider)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Entity %d is invalid", provider);
+	}
+	
+	Address pData = GetConditionData(client, cond);
+	StoreEntityHandleToAddress(pData + offs_TFCondInfo_hProvider, provider);
+}
+
+// float(int client);
+any Native_GetPlayerBurnDuration(Handle plugin, int numParams) {
+	int client = GetNativeCell(1);
+	if (!TF2_IsPlayerInCondition(client, TFCond_OnFire)) {
+		return 0.0;
+	}
+	int pOffsSharedBurnDuration = FindSendPropInfo("CTFPlayer", "m_Shared")
+			+ view_as<int>(offs_CTFPlayerShared_flBurnDuration);
+	return GetEntDataFloat(client, pOffsSharedBurnDuration);
+}
+
+// void(int client, float duration);
+any Native_SetPlayerBurnDuration(Handle plugin, int numParams) {
+	int client = GetNativeCell(1);
+	float duration = GetNativeCell(2);
+	if (!TF2_IsPlayerInCondition(client, TFCond_OnFire)) {
+		return;
+	}
+	int pOffsSharedBurnDuration = FindSendPropInfo("CTFPlayer", "m_Shared")
+			+ view_as<int>(offs_CTFPlayerShared_flBurnDuration);
+	SetEntDataFloat(client, pOffsSharedBurnDuration, duration);
+}
+
 bool IsEntityWeapon(int entity) {
 	if (!IsValidEntity(entity)) {
 		ThrowNativeError(SP_ERROR_NATIVE, "Entity %d (%d) is invalid", entity,
@@ -388,6 +531,17 @@ bool IsEntityWearable(int entity) {
 				EntRefToEntIndex(entity));
 	}
 	return SDKCall(g_SDKCallIsEntityWearable, entity);
+}
+
+static Address GetConditionData(int client, TFCond cond) {
+	Address pCondMemory = DereferencePointer(GetEntityAddress(client)
+			+ view_as<Address>(FindSendPropInfo("CTFPlayer", "m_Shared"))
+			+ offs_CTFPlayerShared_ConditionData);
+	return pCondMemory + view_as<Address>(view_as<int>(cond) * sizeof_TFCondInfo);
+}
+
+static bool IsConditionValid(TFCond cond) {
+	return 0 <= view_as<any>(cond) < g_nConditions;
 }
 
 static Address GameConfGetAddressOffset(Handle gamedata, const char[] key) {

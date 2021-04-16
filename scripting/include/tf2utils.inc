@@ -49,6 +49,59 @@ native int TF2Util_GetPlayerMaxHealth(int client, bool bIgnoreAttributes = false
 		bool bIgnoreOverheal = false);
 
 /**
+ * Returns the number of conditions currently available in the game.  This value will be one
+ * higher than the last valid condition.
+ */
+native int TF2Util_GetConditionCount();
+
+/**
+ * Returns the remaining time on a player condition, or 0.0 if the condition is not active.
+ * 
+ * This is just a wrapper around the internal condition list; some conditions may not accurately
+ * report their duration here (such as burning).
+ */
+native float TF2Util_GetPlayerConditionDuration(int client, TFCond cond);
+
+/**
+ * Sets the remaining time on a player condition without reapplying the condition.
+ * 
+ * @error Condition is not active.
+ */
+native void TF2Util_SetPlayerConditionDuration(int client, TFCond cond, float duration);
+
+/**
+ * Returns the entity providing a player condition, or INVALID_ENT_REFERENCE if the condition is
+ * not active.  0 is returned for "no inflictor".
+ * 
+ * (This is the entity described as the "inflictor" for `TF2_AddCondition`.)
+ */
+native int TF2Util_GetPlayerConditionProvider(int client, TFCond cond);
+
+/**
+ * Sets the entity providing a player condition without reapplying the condition.
+ * 
+ * (This is the entity described as the "inflictor" for `TF2_AddCondition`.)
+ * 
+ * @error Condition is not active.
+ */
+native void TF2Util_SetPlayerConditionProvider(int client, TFCond cond, int inflictor);
+
+/**
+ * Returns the remaining burn time on a given player.  By default this decreases at a fixed rate
+ * over time; the rate may change based on fire resistances (such as while cloaked).
+ * 
+ * If the player is not burning, 0.0 is returned.
+ */
+native float TF2Util_GetPlayerBurnDuration(int client);
+
+/**
+ * Updates the remaining burn time on a given player.  This does not ignite players.
+ * 
+ * @error Player is not already burning.
+ */
+native void TF2Util_SetPlayerBurnDuration(int client, float duration);
+
+/**
  * Returns the player's shoot position.
  */
 native void TF2Util_GetPlayerShootPosition(int client, float result[3]);

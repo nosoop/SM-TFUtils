@@ -2,6 +2,21 @@
 {
 	"tf"
 	{
+		"Addresses"
+		{
+			"&TF_COND_LAST"
+			{
+				"signature"		"CTFPlayerShared::RemoveAllCond()"
+				"linux"
+				{
+					"offset"	"37"
+				}
+				"windows"
+				{
+					"offset"	"147"
+				}
+			}
+		}
 		"Offsets"
 		{
 			// virtual offsets
@@ -57,6 +72,34 @@
 				"linux"		"3540"
 				"windows"	"3520"
 			}
+			"CTFPlayerShared::m_ConditionData"
+			{
+				"linux"		"8"
+				"windows"	"8"
+			}
+			"CTFPlayerShared::m_flBurnDuration"
+			{
+				// after unique xref to string "mult_wpn_burntime"
+				"linux"		"520"
+				"windows"	"520"
+			}
+			
+			"TFCondInfo_t::m_flDuration"
+			{
+				"linux"		"8"
+				"windows"	"8"
+			}
+			"TFCondInfo_t::m_hProvider"
+			{
+				"linux"		"12"
+				"windows"	"12"
+			}
+			
+			"sizeof(TFCondInfo_t)"
+			{
+				"linux"		"20"
+				"windows"	"20"
+			}
 		}
 		"Signatures"
 		{
@@ -87,6 +130,13 @@
 				"library"		"server"
 				"linux"			"@_ZN15CTFPlayerShared18GetMaxBuffedHealthEbb"
 				"windows"		"\x55\x8B\xEC\x83\xEC\x08\x56\x8B\xF1\x57\x8B\x8E\x2A\x01\x00\x00"
+			}
+			"CTFPlayerShared::RemoveAllCond()"
+			{
+				// first non-virtual call after semi-unique xref to "Player.Spawn"
+				"library"		"server"
+				"linux"			"@_ZN15CTFPlayerShared13RemoveAllCondEv"
+				"windows"		"\x55\x8B\xEC\x51\x53\x56\x57\x8B\xF9\x8D\x8F\xE0\x00\x00\x00"
 			}
 			"PointInRespawnRoom()"
 			{
