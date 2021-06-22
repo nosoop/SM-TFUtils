@@ -22,13 +22,13 @@
 			// virtual offsets
 			"CBaseCombatCharacter::Weapon_ShootPosition()"
 			{
-				"windows"	"268"
-				"linux"		"269"
+				"windows"	"269"
+				"linux"		"270"
 			}
 			"CBaseCombatWeapon::GetSlot()"
 			{
-				"windows"	"326"
-				"linux"		"332"
+				"windows"	"327"
+				"linux"		"333"
 			}
 			"CBaseEntity::IsBaseCombatWeapon()"
 			{
@@ -48,19 +48,19 @@
 			}
 			"CTFWeaponBase::GetMaxClip1()"
 			{
-				"windows"	"317"
-				"linux"		"323"
+				"windows"	"318"
+				"linux"		"324"
 			}
 			"CTFWeaponBase::GetWeaponID()"
 			{
-				"windows"	"372"
-				"linux"		"378"
+				"windows"	"373"
+				"linux"		"379"
 			}
 			"CTFPlayer::EquipWearable()"
 			{
-				"windows"	"430"
-				"linux"		"431"
-				"mac"		"431"
+				"windows"	"431"
+				"linux"		"432"
+				"mac"		"432"
 			}
 			
 			// member offsets
