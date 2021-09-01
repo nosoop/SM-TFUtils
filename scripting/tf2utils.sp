@@ -11,7 +11,7 @@
 
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "0.12.0"
+#define PLUGIN_VERSION "0.13.0"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -28,6 +28,7 @@ Handle g_SDKCallPlayerTakeHealth;
 Handle g_SDKCallPlayerGetShootPosition;
 Handle g_SDKCallPlayerGetEntityForLoadoutSlot;
 
+Handle g_SDKCallEntityGetMaxHealth;
 Handle g_SDKCallPlayerSharedGetMaxHealth;
 
 Handle g_SDKCallIsEntityWeapon;
@@ -57,7 +58,8 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	
 	CreateNative("TF2Util_UpdatePlayerSpeed", Native_UpdatePlayerSpeed);
 	CreateNative("TF2Util_TakeHealth", Native_TakeHealth);
-	CreateNative("TF2Util_GetPlayerMaxHealth", Native_GetMaxHealth);
+	CreateNative("TF2Util_GetEntityMaxHealth", Native_GetMaxHealth);
+	CreateNative("TF2Util_GetPlayerMaxHealthBoost", Native_GetMaxHealthBoost);
 	CreateNative("TF2Util_GetPlayerMaxAmmo", Native_GetMaxAmmo);
 	
 	CreateNative("TF2Util_GetConditionCount", Native_GetConditionCount);
@@ -83,6 +85,9 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	CreateNative("TF2Util_GetPlayerShootPosition", Native_GetPlayerShootPosition);
 	
 	CreateNative("TF2Util_IsPointInRespawnRoom", Native_IsPointInRespawnRoom);
+	
+	// deprecated name for backcompat
+	CreateNative("TF2Util_GetPlayerMaxHealth", Native_GetMaxHealthBoost);
 	
 	return APLRes_Success;
 }
@@ -124,6 +129,11 @@ public void OnPluginStart() {
 	PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
 	PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
 	g_SDKCallPlayerSharedGetMaxHealth = EndPrepSDKCall();
+	
+	StartPrepSDKCall(SDKCall_Entity);
+	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual, "CBaseEntity::GetMaxHealth()");
+	g_SDKCallEntityGetMaxHealth = EndPrepSDKCall();
 	
 	StartPrepSDKCall(SDKCall_Entity);
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual, "CBaseEntity::IsBaseCombatWeapon()");
@@ -281,8 +291,18 @@ public int Native_GetMaxAmmo(Handle plugin, int nParams) {
 	return SDKCall(g_SDKCallPlayerGetMaxAmmo, client, ammoIndex, playerClass);
 }
 
-// int(int client, bool bIgnoreAttributes, bool bIgnoreOverheal);
+// int(int entity);
 public int Native_GetMaxHealth(Handle plugin, int nParams) {
+	int entity = GetNativeCell(1);
+	if (!IsValidEntity(entity)) {
+		return ThrowNativeError(SP_ERROR_NATIVE, "Entity %d is invalid", entity);
+	}
+	
+	return SDKCall(g_SDKCallEntityGetMaxHealth, entity);
+}
+
+// int(int client, bool bIgnoreAttributes, bool bIgnoreOverheal);
+public int Native_GetMaxHealthBoost(Handle plugin, int nParams) {
 	int client = GetNativeCell(1);
 	bool bIgnoreAttributes = !!GetNativeCell(2);
 	bool bIgnoreOverheal = !!GetNativeCell(3);

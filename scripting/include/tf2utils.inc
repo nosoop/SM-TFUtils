@@ -43,9 +43,18 @@ native int TF2Util_GetPlayerMaxAmmo(int client, int iAmmoIndex,
 		TFClassType playerClass = TFClass_Unknown);
 
 /**
- * Returns the current maximum health of the player.
+ * Returns the current maximum allowed health of an entity.
  */
-native int TF2Util_GetPlayerMaxHealth(int client, bool bIgnoreAttributes = false,
+native int TF2Util_GetEntityMaxHealth(int entity);
+
+/**
+ * Returns the maximum allowed overhealed health of a player, taking into account the amount
+ * it can gain through overhealing by mediguns.
+ * 
+ * @param bIgnoreAttributes    
+ * @param bIgnoreOverheal      Ignores excessive overheal.
+ */
+native int TF2Util_GetPlayerMaxHealthBoost(int client, bool bIgnoreAttributes = false,
 		bool bIgnoreOverheal = false);
 
 /**
@@ -198,6 +207,13 @@ native void TF2Util_UpdatePlayerSpeed(int client, bool immediate = false);
  */
 native bool TF2Util_IsPointInRespawnRoom(const float[3] position,
 		int entity = INVALID_ENT_REFERENCE, bool bRestrictToSameTeam = false);
+
+/**
+ * Returns the current maximum health of the player.
+ */
+#pragma deprecated Misnamed; use TF2Util_GetEntityMaxHealth or TF2Util_GetPlayerMaxHealthBoost.
+native int TF2Util_GetPlayerMaxHealth(int client, bool bIgnoreAttributes = false,
+		bool bIgnoreOverheal = false);
 
 // compile-time compatibility shim for tf2wearables natives
 #if defined USE_TF2WEARABLE_FUNCTION_SHIMS

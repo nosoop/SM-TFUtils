@@ -30,6 +30,11 @@
 				"windows"	"327"
 				"linux"		"333"
 			}
+			"CBaseEntity::GetMaxHealth()"
+			{
+				"windows"	"117"
+				"linux"		"118"
+			}
 			"CBaseEntity::IsBaseCombatWeapon()"
 			{
 				"windows"	"86"
