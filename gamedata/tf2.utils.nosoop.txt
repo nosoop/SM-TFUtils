@@ -4,8 +4,22 @@
 	{
 		"Addresses"
 		{
+			"g_aConditionNames"
+			{
+				"signature"		"GetTFConditionName()"
+				"linux"
+				{
+					"read"		"16"
+				}
+				"windows"
+				{
+					"read"		"20"
+				}
+			}
 			"&TF_COND_LAST"
 			{
+				// GetTFConditionName() uses a different value for comparisons on each platform,
+				// so we can't just reuse that function
 				"signature"		"CTFPlayerShared::RemoveAllCond()"
 				"linux"
 				{
@@ -142,6 +156,12 @@
 				"library"		"server"
 				"linux"			"@_ZN15CTFPlayerShared13RemoveAllCondEv"
 				"windows"		"\x55\x8B\xEC\x51\x53\x56\x57\x8B\xF9\x8D\x8F\xE0\x00\x00\x00"
+			}
+			"GetTFConditionName()"
+			{
+				"library"		"server"
+				"linux"			"@_Z18GetTFConditionName7ETFCond"
+				"windows"		"\x55\x8B\xEC\x8B\x45\x08\x3D\x2A\x00\x00\x00\x73\x0D"
 			}
 			"PointInRespawnRoom()"
 			{

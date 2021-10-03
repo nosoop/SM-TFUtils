@@ -64,6 +64,24 @@ native int TF2Util_GetPlayerMaxHealthBoost(int client, bool bIgnoreAttributes = 
 native int TF2Util_GetConditionCount();
 
 /**
+ * Returns the last valid condition.  Convenience function intended for loop termination.
+ */
+stock TFCond TF2Util_GetLastCondition() {
+	return view_as<TFCond>(TF2Util_GetConditionCount() - 1);
+}
+
+/**
+ * Given a valid condition index, stores its name in the given buffer.
+ * 
+ * @param cond         Condition index.
+ * @param buffer       Buffer to store name.
+ * @param maxlen       Maximum length of buffer.
+ * @return             Number of bytes written.
+ * @error              Condition index is invalid.
+ */
+native int TF2Util_GetConditionName(TFCond cond, char[] buffer, int maxlen);
+
+/**
  * Returns the remaining time on a player condition, or 0.0 if the condition is not active.
  * 
  * This is just a wrapper around the internal condition list; some conditions may not accurately

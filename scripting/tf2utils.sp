@@ -11,7 +11,7 @@
 
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "0.13.1"
+#define PLUGIN_VERSION "0.14.0"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -41,6 +41,8 @@ Handle g_SDKCallPlayerEquipWearable;
 
 Handle g_SDKCallPointInRespawnRoom;
 
+Address offs_ConditionNames;
+
 Address offs_CTFPlayer_hMyWearables;
 
 Address offs_CTFPlayerShared_flBurnDuration;
@@ -63,6 +65,7 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	CreateNative("TF2Util_GetPlayerMaxAmmo", Native_GetMaxAmmo);
 	
 	CreateNative("TF2Util_GetConditionCount", Native_GetConditionCount);
+	CreateNative("TF2Util_GetConditionName", Native_GetConditionName);
 	CreateNative("TF2Util_GetPlayerConditionDuration", Native_GetPlayerConditionDuration);
 	CreateNative("TF2Util_SetPlayerConditionDuration", Native_SetPlayerConditionDuration);
 	CreateNative("TF2Util_GetPlayerConditionProvider", Native_GetPlayerConditionProvider);
@@ -220,6 +223,7 @@ public void OnPluginStart() {
 				... "count native will report incorrect values.", g_nConditions);
 		g_nConditions = 0xFF;
 	}
+	offs_ConditionNames = GameConfGetAddress(hGameConf, "g_aConditionNames");
 	
 	delete hGameConf;
 }
@@ -453,6 +457,28 @@ int Native_GetPlayerLoadoutEntity(Handle plugin, int numParams) {
 // int();
 int Native_GetConditionCount(Handle plugin, int numParams) {
 	return g_nConditions;
+}
+
+// int(TFCond cond, char[] buffer, int maxlen);
+int Native_GetConditionName(Handle plugin, int numParams) {
+	any cond = GetNativeCell(1);
+	if (!IsConditionValid(cond)) {
+		return ThrowNativeError(SP_ERROR_NATIVE, "Condition index %d is invalid", cond);
+	}
+	
+	int buflen = GetNativeCell(3);
+	if (buflen <= 0) {
+		return 0;
+	}
+	
+	char[] buffer = new char[buflen];
+	int written = LoadStringFromAddress(
+			DereferencePointer(offs_ConditionNames + view_as<Address>(cond * 4)),
+			buffer, buflen);
+	int actually_written;
+	
+	SetNativeString(2, buffer, ++written, .bytes = actually_written);
+	return actually_written;
 }
 
 // float(int client, TFCond cond);
