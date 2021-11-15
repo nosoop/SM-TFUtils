@@ -11,7 +11,7 @@
 
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "0.13.0"
+#define PLUGIN_VERSION "0.13.1"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -329,6 +329,12 @@ public int Native_EquipPlayerWearable(Handle plugin, int numParams) {
 				EntRefToEntIndex(wearable));
 	}
 	SDKCall(g_SDKCallPlayerEquipWearable, client, wearable);
+	
+	if (GetEntPropEnt(wearable, Prop_Send, "m_hOwnerEntity") != client) {
+		// make sure owner is correct; if not, then gamedata is probably out of date
+		ThrowNativeError("Assertion failed - wearable entity %d not attached to player. "
+				... "Gamedata may need to be updated", wearable);
+	}
 }
 
 // int(int client, int index);
