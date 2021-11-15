@@ -336,7 +336,8 @@ public int Native_EquipPlayerWearable(Handle plugin, int numParams) {
 	
 	if (GetEntPropEnt(wearable, Prop_Send, "m_hOwnerEntity") != client) {
 		// make sure owner is correct; if not, then gamedata is probably out of date
-		ThrowNativeError("Assertion failed - wearable entity %d not attached to player. "
+		ThrowNativeError(SP_ERROR_NATIVE,
+				"Assertion failed - wearable entity %d not attached to player. "
 				... "Gamedata may need to be updated", wearable);
 	}
 }
