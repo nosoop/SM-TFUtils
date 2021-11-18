@@ -11,7 +11,7 @@
 
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "0.14.0"
+#define PLUGIN_VERSION "0.14.1"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -332,6 +332,13 @@ public int Native_EquipPlayerWearable(Handle plugin, int numParams) {
 		ThrowNativeError(SP_ERROR_NATIVE, "Entity index %d is not a wearable",
 				EntRefToEntIndex(wearable));
 	}
+	
+	if (GetEntPropEnt(wearable, Prop_Send, "m_hOuter") != wearable) {
+		ThrowNativeError(SP_ERROR_NATIVE,
+				"Wearable entity index %d is not initialized correctly - was it not spawned?",
+				wearable);
+	}
+	
 	SDKCall(g_SDKCallPlayerEquipWearable, client, wearable);
 	
 	if (GetEntPropEnt(wearable, Prop_Send, "m_hOwnerEntity") != client) {
