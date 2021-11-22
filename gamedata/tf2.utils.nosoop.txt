@@ -47,7 +47,7 @@
 			"CBaseEntity::GetMaxHealth()"
 			{
 				"windows"	"120"
-				"linux"		"120"
+				"linux"		"121"
 			}
 			"CBaseEntity::IsBaseCombatWeapon()"
 			{
