@@ -137,6 +137,14 @@ native void TF2Util_SetPlayerBurnDuration(int client, float duration);
 native void TF2Util_GetPlayerShootPosition(int client, float result[3]);
 
 /**
+ * Returns the healer entity index at the given position in the player's healer array.
+ * To get the number of healers available, use the m_nNumHealers netprop.
+ * 
+ * @return Healer entity index at the given index.
+ */
+native int TF2Util_GetPlayerHealer(int client, int index);
+
+/**
  * Returns whether or not the given entity is a weapon.
  * 
  * @error Entity is not valid.

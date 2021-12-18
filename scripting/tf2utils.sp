@@ -11,7 +11,7 @@
 
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "0.14.1"
+#define PLUGIN_VERSION "0.15.0"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -42,6 +42,7 @@ Handle g_SDKCallPlayerEquipWearable;
 Handle g_SDKCallPointInRespawnRoom;
 
 Address offs_ConditionNames;
+Address offs_CTFPlayer_aHealers;
 
 Address offs_CTFPlayer_hMyWearables;
 
@@ -72,6 +73,8 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	CreateNative("TF2Util_SetPlayerConditionProvider", Native_SetPlayerConditionProvider);
 	CreateNative("TF2Util_GetPlayerBurnDuration", Native_GetPlayerBurnDuration);
 	CreateNative("TF2Util_SetPlayerBurnDuration", Native_SetPlayerBurnDuration);
+	
+	CreateNative("TF2Util_GetPlayerHealer", Native_GetPlayerHealer);
 	
 	CreateNative("TF2Util_IsEntityWearable", Native_IsEntityWearable);
 	CreateNative("TF2Util_GetPlayerWearable", Native_GetPlayerWearable);
@@ -224,6 +227,8 @@ public void OnPluginStart() {
 		g_nConditions = 0xFF;
 	}
 	offs_ConditionNames = GameConfGetAddress(hGameConf, "g_aConditionNames");
+	
+	offs_CTFPlayer_aHealers = view_as<Address>(FindSendPropInfo("CTFPlayer", "m_nNumHealers") + 0xC);
 	
 	delete hGameConf;
 }
@@ -386,6 +391,27 @@ public int Native_GetPlayerShootPosition(Handle plugin, int nParams) {
 	float vecResult[3];
 	SDKCall(g_SDKCallPlayerGetShootPosition, client, vecResult);
 	SetNativeArray(2, vecResult, sizeof(vecResult));
+}
+
+// int(int client, int index);
+int Native_GetPlayerHealer(Handle plugin, int nParams) {
+	// Pelipoika did this ages ago https://forums.alliedmods.net/showthread.php?t=306854
+	// it's bundled here for consistency's sake, and in case it needs maintenance in the future
+	int client = GetNativeCell(1);
+	int index = GetNativeCell(2);
+	
+	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
+	}
+	
+	int count = GetEntProp(client, Prop_Send, "m_nNumHealers");
+	if (index < 0 || index >= count) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Invalid index %d (count: %d)", index, count);
+	}
+	
+	Address pData = DereferencePointer(GetEntityAddress(client)
+			+ view_as<Address>(offs_CTFPlayer_aHealers));
+	return EntRefToEntIndex(LoadEntityHandleFromAddress(pData + view_as<Address>(0x24 * index)));
 }
 
 // bool(int entity);
