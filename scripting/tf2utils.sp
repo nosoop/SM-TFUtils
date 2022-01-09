@@ -247,7 +247,7 @@ public void OnClientPutInServer(int client) {
 	SDKHook(client, SDKHook_PreThinkPost, OnPreThinkPost);
 }
 
-public void OnPreThinkPost(int client) {
+void OnPreThinkPost(int client) {
 	if (g_bDeferredSpeedUpdate[client]) {
 		ForceSpeedUpdate(client);
 	}
@@ -260,7 +260,7 @@ void ForceSpeedUpdate(int client) {
 }
 
 // void(int client, bool immediate = false)
-public int Native_UpdatePlayerSpeed(Handle plugin, int nParams) {
+int Native_UpdatePlayerSpeed(Handle plugin, int nParams) {
 	int client = GetNativeCell(1);
 	bool immediate = GetNativeCell(2);
 	
@@ -275,7 +275,7 @@ public int Native_UpdatePlayerSpeed(Handle plugin, int nParams) {
 }
 
 // int(int client, float amount, int bitsHealType = 0);
-public int Native_TakeHealth(Handle plugin, int nParams) {
+int Native_TakeHealth(Handle plugin, int nParams) {
 	int client = GetNativeCell(1);
 	float amount = GetNativeCell(2);
 	int bitsHealType = GetNativeCell(3);
@@ -288,7 +288,7 @@ public int Native_TakeHealth(Handle plugin, int nParams) {
 }
 
 // int(int client, int ammoIndex, TFClassType playerClass = TFClass_Unknown);
-public int Native_GetMaxAmmo(Handle plugin, int nParams) {
+int Native_GetMaxAmmo(Handle plugin, int nParams) {
 	int client = GetNativeCell(1);
 	int ammoIndex = GetNativeCell(2);
 	int playerClass = GetNativeCell(3);
@@ -301,7 +301,7 @@ public int Native_GetMaxAmmo(Handle plugin, int nParams) {
 }
 
 // int(int entity);
-public int Native_GetMaxHealth(Handle plugin, int nParams) {
+int Native_GetMaxHealth(Handle plugin, int nParams) {
 	int entity = GetNativeCell(1);
 	if (!IsValidEntity(entity)) {
 		return ThrowNativeError(SP_ERROR_NATIVE, "Entity %d is invalid", entity);
@@ -311,7 +311,7 @@ public int Native_GetMaxHealth(Handle plugin, int nParams) {
 }
 
 // int(int client, bool bIgnoreAttributes, bool bIgnoreOverheal);
-public int Native_GetMaxHealthBoost(Handle plugin, int nParams) {
+int Native_GetMaxHealthBoost(Handle plugin, int nParams) {
 	int client = GetNativeCell(1);
 	bool bIgnoreAttributes = !!GetNativeCell(2);
 	bool bIgnoreOverheal = !!GetNativeCell(3);
@@ -326,7 +326,7 @@ public int Native_GetMaxHealthBoost(Handle plugin, int nParams) {
 			bIgnoreAttributes, bIgnoreOverheal);
 }
 
-public int Native_EquipPlayerWearable(Handle plugin, int numParams) {
+int Native_EquipPlayerWearable(Handle plugin, int numParams) {
 	int client = GetNativeCell(1);
 	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
 		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
@@ -355,7 +355,7 @@ public int Native_EquipPlayerWearable(Handle plugin, int numParams) {
 }
 
 // int(int client, int index);
-public int Native_GetPlayerWearable(Handle plugin, int nParams) {
+int Native_GetPlayerWearable(Handle plugin, int nParams) {
 	int client = GetNativeCell(1);
 	int index = GetNativeCell(2);
 	
@@ -374,7 +374,7 @@ public int Native_GetPlayerWearable(Handle plugin, int nParams) {
 }
 
 // int(int client);
-public int Native_GetPlayerWearableCount(Handle plugin, int nParams) {
+int Native_GetPlayerWearableCount(Handle plugin, int nParams) {
 	int client = GetNativeCell(1);
 	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
 		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
@@ -383,7 +383,7 @@ public int Native_GetPlayerWearableCount(Handle plugin, int nParams) {
 }
 
 // void(int client, float result[3]);
-public int Native_GetPlayerShootPosition(Handle plugin, int nParams) {
+int Native_GetPlayerShootPosition(Handle plugin, int nParams) {
 	int client = GetNativeCell(1);
 	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
 		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
@@ -415,19 +415,19 @@ int Native_GetPlayerHealer(Handle plugin, int nParams) {
 }
 
 // bool(int entity);
-public int Native_IsEntityWeapon(Handle plugin, int nParams) {
+int Native_IsEntityWeapon(Handle plugin, int nParams) {
 	int entity = GetNativeCell(1);
 	return IsEntityWeapon(entity);
 }
 
 // bool(int entity);
-public int Native_IsEntityWearable(Handle plugin, int nParams) {
+int Native_IsEntityWearable(Handle plugin, int nParams) {
 	int entity = GetNativeCell(1);
 	return IsEntityWearable(entity);
 }
 
 // int(int entity);
-public int Native_GetWeaponSlot(Handle plugin, int nParams) {
+int Native_GetWeaponSlot(Handle plugin, int nParams) {
 	int entity = GetNativeCell(1);
 	if (!IsEntityWeapon(entity)) {
 		ThrowNativeError(SP_ERROR_NATIVE, "Entity index %d (%d) is not a weapon", entity,
@@ -437,7 +437,7 @@ public int Native_GetWeaponSlot(Handle plugin, int nParams) {
 }
 
 // int(int entity);
-public int Native_GetWeaponID(Handle plugin, int nParams) {
+int Native_GetWeaponID(Handle plugin, int nParams) {
 	int entity = GetNativeCell(1);
 	if (!IsEntityWeapon(entity)) {
 		ThrowNativeError(SP_ERROR_NATIVE, "Entity index %d (%d) is not a weapon", entity,
@@ -447,7 +447,7 @@ public int Native_GetWeaponID(Handle plugin, int nParams) {
 }
 
 // int(int entity);
-public int Native_GetWeaponMaxClip(Handle plugin, int nParams) {
+int Native_GetWeaponMaxClip(Handle plugin, int nParams) {
 	int entity = GetNativeCell(1);
 	if (!IsEntityWeapon(entity)) {
 		ThrowNativeError(SP_ERROR_NATIVE, "Entity index %d (%d) is not a weapon", entity,
@@ -457,7 +457,7 @@ public int Native_GetWeaponMaxClip(Handle plugin, int nParams) {
 }
 
 // bool(const float[3] position, int entity, bool bRestrictToSameTeam)
-public int Native_IsPointInRespawnRoom(Handle plugin, int nParams) {
+int Native_IsPointInRespawnRoom(Handle plugin, int nParams) {
 	if (IsNativeParamNullVector(1)) {
 		return ThrowNativeError(SP_ERROR_NATIVE, "Cannot use NULL_VECTOR as origin");
 	}
