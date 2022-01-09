@@ -22,7 +22,8 @@
 #define TAKEHEALTH_IGNORE_DEBUFFS		(DMG_SLASH)  // Currently unused?  Looks like it was originally for Pyro's FT healing debuff mechanism
 
 /**
- * Attempts to heal the player for the specified amount.
+ * Attempts to heal the player for the specified amount.  This does not provide any indicators;
+ * you will need to fire any related events yourself.
  * 
  * @param flHealth        Amount of health to heal.
  * @param bitsHealType    TakeHealth flags.  See TAKEHEALTH_* constants.
@@ -122,7 +123,9 @@ native void TF2Util_SetPlayerConditionProvider(int client, TFCond cond, int infl
 native float TF2Util_GetPlayerBurnDuration(int client);
 
 /**
- * Updates the remaining burn time on a given player.  This does not ignite players.
+ * Updates the remaining burn time on a given player.  This does not ignite players.  This
+ * bypasses the 10 second maximum burn duration limitation added in Jungle Inferno; however,
+ * this will be clamped the next time the game needs to update the burn duration.
  * 
  * @error Player is not already burning.
  */
@@ -148,14 +151,15 @@ native bool TF2Util_IsEntityWeapon(int entity);
 native bool TF2Util_IsEntityWearable(int entity);
 
 /**
- * Returns the slot for the given weapon entity.
+ * Returns the slot for the given weapon entity.  This corresponds to the TFWeaponSlot_*
+ * constants in tf2_stocks.
  * 
  * @error Entity is not valid or not a weapon.
  */
 native int TF2Util_GetWeaponSlot(int entity);
 
 /**
- * Returns the weapon entity's weapon ID.  This corresponds to the TF_WEAPON_* weapon codes in
+ * Returns the weapon entity's weapon ID.  This corresponds to the TF_WEAPON_* constants in
  * tf2_stocks, *not* the item definition index.
  * 
  * @error Entity is not valid or not a weapon.
@@ -163,14 +167,15 @@ native int TF2Util_GetWeaponSlot(int entity);
 native int TF2Util_GetWeaponID(int entity);
 
 /**
- * Returns the weapon entity's maximum clip.
+ * Returns the weapon entity's maximum clip (that is, the maximum number of times it can be
+ * fired before reloading).
  * 
  * @error Entity is not valid or not a weapon.
  */
 native int TF2Util_GetWeaponMaxClip(int entity);
 
 /**
- * @return Wearable entity at the given index.
+ * @return Client's wearable entity at the given index.
  * @error Index is negative or out of bounds.
  */
 native int TF2Util_GetPlayerWearable(int client, int index);
@@ -185,8 +190,13 @@ native int TF2Util_GetPlayerWearableCount(int client);
  * building, pda, pda2) are also checked for wearable items.  Otherwise, wearables in those
  * slots (Sniper / Demoman shields) are ignored.
  * 
- * Note that this validates that the player is using a class that can equip the given item; any
- * items not applicable to the class are ignored.
+ * Note that the game validates that the player is using a class that can equip the given item;
+ * any items not applicable to the class are ignored.
+ * 
+ * This also does not differentiate between different cosmetic slots (all cosmetics will match
+ * on the first loadout slot).  If you want to get cosmetic entities on a given player, you will
+ * instead want to use `TF2Util_GetPlayerWearable` / `TF2Util_GetPlayerWearableCount`.
+ * Identifying specific occupied cosmetic loadout slots is currently not supported.
  * 
  * @return Entity on the given client occupying the given loadout slot.
  */
@@ -196,7 +206,8 @@ native int TF2Util_GetPlayerLoadoutEntity(int client, int loadoutSlot,
 /**
  * Equips the given wearable entity onto the given client.
  * 
- * @error Client is invalid or entity is not a wearable.
+ * @error Client is invalid, entity is not a wearable, wearable was not spawned, or assertion
+ *        failed to verify that the wearable was successfully attached (outdated gamedata).
  */
 native void TF2Util_EquipPlayerWearable(int client, int wearable);
 
@@ -205,8 +216,8 @@ native void TF2Util_EquipPlayerWearable(int client, int wearable);
  * 
  * @param immediate    Whether or not the speed is updated immediately.  If this is set to
  *                     false, the call will be defered and batched so all non-immediate calls
- *                     will only trigger one update to the player's speed at most.  (This is
- *                     designed to accomodate plugins using detours on player speed
+ *                     will only trigger one update to the player's speed at most per frame.
+ *                     (This is designed to accomodate plugins using detours on player speed
  *                     calculations.)
  */
 native void TF2Util_UpdatePlayerSpeed(int client, bool immediate = false);
@@ -216,12 +227,12 @@ native void TF2Util_UpdatePlayerSpeed(int client, bool immediate = false);
  * passed in, this also checks if the entity is touching an active respawn room, instead of just
  * the given position.
  * 
- * @param position             A position to check.  Should be the center / origin of an entity.
- * @param entity               An optional entity to check.
- * @param bTouchingSameTeam    Whether or not the respawn room must either match the entity's
- *                             team, or not be assigned to a team.  Always treated as true if
- *                             the position is in an active spawn room.  Has no effect if no
- *                             entity is provided.
+ * @param position               Position to check; should be the center / origin of an entity.
+ * @param entity                 An optional entity to check.
+ * @param bRestrictToSameTeam    Whether or not the respawn room must either match the entity's
+ *                               team, or not be assigned to a team.  Always treated as true if
+ *                               the position is in an active spawn room.  Has no effect if no
+ *                               entity is provided.
  */
 native bool TF2Util_IsPointInRespawnRoom(const float[3] position,
 		int entity = INVALID_ENT_REFERENCE, bool bRestrictToSameTeam = false);
