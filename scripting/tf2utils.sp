@@ -11,7 +11,7 @@
 
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "0.15.0"
+#define PLUGIN_VERSION "0.16.0"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -42,6 +42,7 @@ Handle g_SDKCallPlayerEquipWearable;
 Handle g_SDKCallPointInRespawnRoom;
 
 Address offs_ConditionNames;
+Address offs_CTFPlayer_aObjects;
 Address offs_CTFPlayer_aHealers;
 
 Address offs_CTFPlayer_hMyWearables;
@@ -73,6 +74,9 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	CreateNative("TF2Util_SetPlayerConditionProvider", Native_SetPlayerConditionProvider);
 	CreateNative("TF2Util_GetPlayerBurnDuration", Native_GetPlayerBurnDuration);
 	CreateNative("TF2Util_SetPlayerBurnDuration", Native_SetPlayerBurnDuration);
+	
+	CreateNative("TF2Util_GetPlayerObject", Native_GetPlayerObject);
+	CreateNative("TF2Util_GetPlayerObjectCount", Native_GetPlayerObjectCount);
 	
 	CreateNative("TF2Util_GetPlayerHealer", Native_GetPlayerHealer);
 	
@@ -227,6 +231,19 @@ public void OnPluginStart() {
 		g_nConditions = 0xFF;
 	}
 	offs_ConditionNames = GameConfGetAddress(hGameConf, "g_aConditionNames");
+	
+	Address pOffsPlayerObjects = GameConfGetAddress(hGameConf,
+			"offsetof(CTFPlayer::m_aObjects)");
+	if (!pOffsPlayerObjects) {
+		SetFailState("Could not determine location to read CTFPlayer::m_aObjects from.");
+	}
+	
+	offs_CTFPlayer_aObjects = LoadFromAddress(pOffsPlayerObjects, NumberType_Int32);
+	if (offs_CTFPlayer_aObjects & ~0xFFFF) {
+		// high bits are set - bad read?
+		SetFailState("Could not determine offset of CTFPlayer::m_aObjects (received %08x)",
+				offs_CTFPlayer_aObjects);
+	}
 	
 	offs_CTFPlayer_aHealers = view_as<Address>(FindSendPropInfo("CTFPlayer", "m_nNumHealers") + 0xC);
 	
@@ -391,6 +408,35 @@ int Native_GetPlayerShootPosition(Handle plugin, int nParams) {
 	float vecResult[3];
 	SDKCall(g_SDKCallPlayerGetShootPosition, client, vecResult);
 	SetNativeArray(2, vecResult, sizeof(vecResult));
+}
+
+// int(int client, int index);
+int Native_GetPlayerObject(Handle plugin, int nParams) {
+	int client = GetNativeCell(1);
+	int index = GetNativeCell(2);
+	
+	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
+	}
+	
+	int count = GetEntData(client, view_as<int>(offs_CTFPlayer_aObjects) + 0x0C);
+	if (index < 0 || index >= count) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Invalid index %d (count: %d)", index, count);
+	}
+	
+	Address pData = DereferencePointer(GetEntityAddress(client)
+			+ view_as<Address>(offs_CTFPlayer_aObjects));
+	return EntRefToEntIndex(
+			LoadEntityHandleFromAddress(pData + view_as<Address>(0x04 * index)));
+}
+
+// int(int client);
+int Native_GetPlayerObjectCount(Handle plugin, int nParams) {
+	int client = GetNativeCell(1);
+	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
+	}
+	return GetEntData(client, view_as<int>(offs_CTFPlayer_aObjects) + 0x0C);
 }
 
 // int(int client, int index);

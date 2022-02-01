@@ -137,6 +137,18 @@ native void TF2Util_SetPlayerBurnDuration(int client, float duration);
 native void TF2Util_GetPlayerShootPosition(int client, float result[3]);
 
 /**
+ * @return Object (building) entity index at the given index.
+ * @error Entity is not a client or index is out of bounds.
+ */
+native int TF2Util_GetPlayerObject(int client, int index);
+
+/**
+ * @return Number of objects (buildings) in a given client's object array.
+ * @error Entity is not a client.
+ */
+native int TF2Util_GetPlayerObjectCount(int client);
+
+/**
  * Returns the healer entity index at the given position in the player's healer array.
  * To get the number of healers available, use the m_nNumHealers netprop.
  * 

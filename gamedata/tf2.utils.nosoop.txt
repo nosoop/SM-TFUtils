@@ -30,6 +30,19 @@
 					"offset"	"147"
 				}
 			}
+			"offsetof(CTFPlayer::m_aObjects)"
+			{
+				"linux"
+				{
+					"signature"		"CTFPlayer::GetObject()"
+					"offset"		"18"
+				}
+				"windows"
+				{
+					"signature"		"CTFPlayer::RemoveAllObjects()"
+					"offset"		"34"
+				}
+			}
 		}
 		"Offsets"
 		{
@@ -142,6 +155,19 @@
 				"library"		"server"
 				"linux"			"@_ZN9CTFPlayer21TeamFortress_SetSpeedEv"
 				"windows"		"\x55\x8B\xEC\xA1\x2A\x2A\x2A\x2A\x83\xEC\x1C\x53"
+			}
+			"CTFPlayer::GetObject()"
+			{
+				// we only use this to get offsetof(CTFPlayer::m_aObjects) on Linux
+				"library"	"server"
+				"linux"		"@_ZNK9CTFPlayer9GetObjectEi"
+			}
+			"CTFPlayer::RemoveAllObjects()"
+			{
+				// contains reference to string "object_removed"
+				// we only use this to get offsetof(CTFPlayer::m_aObjects) on Windows
+				"library"		"server"
+				"windows"		"\x55\x8B\xEC\x83\xEC\x08\x8B\xC1\x57"
 			}
 			"CTFPlayerShared::GetMaxBuffedHealth()"
 			{
