@@ -11,6 +11,14 @@ structure (which can be done with [Source Scramble][]).
 [DHooks]: https://github.com/peace-maker/DHooks2/
 [Source Scramble]: https://github.com/nosoop/SMExt-SourceScramble/
 
+## Installation
+
+Go to the releases page and get the following from the topmost release:
+
+- Copy `tf2utils.smx` to `plugins/`
+- Copy `tf2.utils.nosoop.txt` to `gamedata/`
+- Copy `tf2utils.inc` to `scripting/include/`
+
 ## Similar plugins
 
 There are a number of shared plugins for TF2 that are focused on specific aspects.
@@ -40,3 +48,18 @@ The following plugins have some of their functionality merged in.
 wearable entities or attach new ones.
 
 [TF2 Wearable Tools]: https://github.com/nosoop/sourcemod-tf2wearables
+
+## Building
+
+This plugin depends on [stocksoup][] for compilation.  This project is also configured for
+building via [Ninja][]; see `BUILD.md` for detailed instructions on how to build it. tl;dr:
+
+    git clone --recurse-submodules ${repo_url} ${repo_local_dir}
+    cd ${repo_local_dir}
+    python3 configure.py --spcomp-dir ${spcomp_dir}
+    ninja
+
+If you'd like to use the build system for your own projects,
+[the template is available here](https://github.com/nosoop/NinjaBuild-SMPlugin).
+
+[Ninja]: https://ninja-build.org/
