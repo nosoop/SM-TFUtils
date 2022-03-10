@@ -238,8 +238,9 @@ public void OnPluginStart() {
 		SetFailState("Could not determine location to read CTFPlayer::m_aObjects from.");
 	}
 	
-	offs_CTFPlayer_aObjects = LoadFromAddress(pOffsPlayerObjects, NumberType_Int32);
-	if (offs_CTFPlayer_aObjects & ~0xFFFF) {
+	offs_CTFPlayer_aObjects = view_as<Address>(
+			LoadFromAddress(pOffsPlayerObjects, NumberType_Int32));
+	if (view_as<int>(offs_CTFPlayer_aObjects) & ~0xFFFF) {
 		// high bits are set - bad read?
 		SetFailState("Could not determine offset of CTFPlayer::m_aObjects (received %08x)",
 				offs_CTFPlayer_aObjects);
