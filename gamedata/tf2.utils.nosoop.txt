@@ -43,6 +43,18 @@
 					"offset"		"34"
 				}
 			}
+			"offsetof(CTFPlayer::m_flRespawnTimeOverride)"
+			{
+				"signature"		"CTFPlayer::IsReadyToSpawn()"
+				"linux"
+				{
+					"offset"	"71"
+				}
+				"windows"
+				{
+					"offset"	"127"
+				}
+			}
 		}
 		"Offsets"
 		{
@@ -161,6 +173,15 @@
 				// we only use this to get offsetof(CTFPlayer::m_aObjects) on Linux
 				"library"	"server"
 				"linux"		"@_ZNK9CTFPlayer9GetObjectEi"
+			}
+			"CTFPlayer::IsReadyToSpawn()"
+			{
+				// Windows signature can be found with a bytescan of "83 BE ?? ?? 00 00 03 5E"
+				// (conditional setter at the end of the function)
+				// we only use this to get offsetof(CTFPlayer::m_flRespawnTimeOverride)
+				"library"	"server"
+				"linux"		"@_ZN9CTFPlayer14IsReadyToSpawnEv"
+				"windows"	"\x56\x8B\xF1\x80\xBE\x2A\x2A\x00\x00\x00\x74\x04\x32\xC0\x5E\xC3\x8B\x2A\x2A\x2A\x00\x00"
 			}
 			"CTFPlayer::RemoveAllObjects()"
 			{

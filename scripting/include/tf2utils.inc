@@ -132,6 +132,35 @@ native float TF2Util_GetPlayerBurnDuration(int client);
 native void TF2Util_SetPlayerBurnDuration(int client, float duration);
 
 /**
+ * Returns the player's respawn time override, if any.  This is the number of seconds that a
+ * player will spend waiting to be respawned after their last death (CTFPlayer::m_flDeathTime).
+ * 
+ * The amount of time remaining can be computed as follows:
+ *
+ *     flRemainingTime = flDeathTime + flRespawnTimeOverride - GetGameTime();
+ * 
+ * If the player does not have an override on their respawn time (i.e. they are part of normal
+ * respawn waves), this will return -1.0.
+ * 
+ * @error Invalid client.
+ */
+native float TF2Util_GetPlayerRespawnTimeOverride(int client);
+
+/**
+ * Changes the player's respawn time override.  See `TF2Util_GetPlayerRespawnTimeOverride` above
+ * for an explanation of the value.
+ * 
+ * Setting this value to -1.0 will remove any existing respawn time overrides.
+ *
+ * When a player dies, the game will set this value to -1.0 or the RespawnTime value of an
+ * active trigger_player_respawn_override entity that the player died in, if one exists.
+ * (This happens *after* the `player_death` event is fired.)
+ * 
+ * @error Invalid client.
+ */
+native void TF2Util_SetPlayerRespawnTimeOverride(int client, float time);
+
+/**
  * Returns the player's shoot position.
  */
 native void TF2Util_GetPlayerShootPosition(int client, float result[3]);

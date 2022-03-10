@@ -11,7 +11,7 @@
 
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "0.16.0"
+#define PLUGIN_VERSION "0.17.0"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -44,6 +44,7 @@ Handle g_SDKCallPointInRespawnRoom;
 Address offs_ConditionNames;
 Address offs_CTFPlayer_aObjects;
 Address offs_CTFPlayer_aHealers;
+any offs_CTFPlayer_flRespawnTimeOverride;
 
 Address offs_CTFPlayer_hMyWearables;
 
@@ -74,6 +75,8 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	CreateNative("TF2Util_SetPlayerConditionProvider", Native_SetPlayerConditionProvider);
 	CreateNative("TF2Util_GetPlayerBurnDuration", Native_GetPlayerBurnDuration);
 	CreateNative("TF2Util_SetPlayerBurnDuration", Native_SetPlayerBurnDuration);
+	CreateNative("TF2Util_GetPlayerRespawnTimeOverride", Native_GetPlayerRespawnTimeOverride);
+	CreateNative("TF2Util_SetPlayerRespawnTimeOverride", Native_SetPlayerRespawnTimeOverride);
 	
 	CreateNative("TF2Util_GetPlayerObject", Native_GetPlayerObject);
 	CreateNative("TF2Util_GetPlayerObjectCount", Native_GetPlayerObjectCount);
@@ -247,6 +250,21 @@ public void OnPluginStart() {
 	}
 	
 	offs_CTFPlayer_aHealers = view_as<Address>(FindSendPropInfo("CTFPlayer", "m_nNumHealers") + 0xC);
+	
+	Address pOffsPlayerRespawnOverride = GameConfGetAddress(hGameConf,
+			"offsetof(CTFPlayer::m_flRespawnTimeOverride)");
+	if (!pOffsPlayerRespawnOverride) {
+		SetFailState("Could not determine location to read CTFPlayer::m_flRespawnTimeOverride "
+				... "from.");
+	}
+	
+	offs_CTFPlayer_flRespawnTimeOverride =
+			LoadFromAddress(pOffsPlayerRespawnOverride, NumberType_Int32);
+	if (offs_CTFPlayer_flRespawnTimeOverride & 0xFFFF0000) {
+		// high bits are set - bad read?
+		SetFailState("Could not determine offset of CTFPlayer::m_flRespawnTimeOverride "
+				... " (received %08x)", offs_CTFPlayer_flRespawnTimeOverride);
+	}
 	
 	delete hGameConf;
 }
@@ -648,6 +666,26 @@ any Native_SetPlayerBurnDuration(Handle plugin, int numParams) {
 	int pOffsSharedBurnDuration = FindSendPropInfo("CTFPlayer", "m_Shared")
 			+ view_as<int>(offs_CTFPlayerShared_flBurnDuration);
 	SetEntDataFloat(client, pOffsSharedBurnDuration, duration);
+}
+
+// float(int client);
+any Native_GetPlayerRespawnTimeOverride(Handle plugin, int numParams) {
+	int client = GetNativeCell(1);
+	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
+	}
+	return GetEntDataFloat(client, offs_CTFPlayer_flRespawnTimeOverride);
+}
+
+// void(int client, float time);
+any Native_SetPlayerRespawnTimeOverride(Handle plugin, int numParams) {
+	int client = GetNativeCell(1);
+	float time = GetNativeCell(2);
+	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
+	}
+	SetEntDataFloat(client, offs_CTFPlayer_flRespawnTimeOverride, time);
+	return;
 }
 
 bool IsEntityWeapon(int entity) {
