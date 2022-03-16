@@ -46,6 +46,8 @@ Address offs_CTFPlayer_aObjects;
 Address offs_CTFPlayer_aHealers;
 any offs_CTFPlayer_flRespawnTimeOverride;
 
+float g_flRespawnTimeOverride[MAXPLAYERS + 1] = { -1.0, ... };
+
 Address offs_CTFPlayer_hMyWearables;
 
 Address offs_CTFPlayerShared_flBurnDuration;
@@ -279,6 +281,7 @@ public void OnMapStart() {
 
 public void OnClientPutInServer(int client) {
 	g_bDeferredSpeedUpdate[client] = false;
+	g_flRespawnTimeOverride[client] = -1.0;
 	
 	SDKHook(client, SDKHook_PreThinkPost, OnPreThinkPost);
 }
@@ -286,6 +289,11 @@ public void OnClientPutInServer(int client) {
 void OnPreThinkPost(int client) {
 	if (g_bDeferredSpeedUpdate[client]) {
 		ForceSpeedUpdate(client);
+	}
+	
+	if (!IsPlayerAlive(client) && g_flRespawnTimeOverride[client] != -1.0) {
+		SetPlayerRespawnTimeOverrideInternal(client, g_flRespawnTimeOverride[client]);
+		g_flRespawnTimeOverride[client] = -1.0;
 	}
 }
 
@@ -362,6 +370,7 @@ int Native_GetMaxHealthBoost(Handle plugin, int nParams) {
 			bIgnoreAttributes, bIgnoreOverheal);
 }
 
+// void(int client, int wearable);
 int Native_EquipPlayerWearable(Handle plugin, int numParams) {
 	int client = GetNativeCell(1);
 	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
@@ -684,7 +693,13 @@ any Native_SetPlayerRespawnTimeOverride(Handle plugin, int numParams) {
 	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
 		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
 	}
-	SetEntDataFloat(client, offs_CTFPlayer_flRespawnTimeOverride, time);
+	
+	if (!IsPlayerAlive(client)) {
+		SetPlayerRespawnTimeOverrideInternal(client, time);
+		g_flRespawnTimeOverride[client] = -1.0;
+	} else {
+		g_flRespawnTimeOverride[client] = time;
+	}
 	return;
 }
 
@@ -702,6 +717,10 @@ bool IsEntityWearable(int entity) {
 				EntRefToEntIndex(entity));
 	}
 	return SDKCall(g_SDKCallIsEntityWearable, entity);
+}
+
+static void SetPlayerRespawnTimeOverrideInternal(int client, float time) {
+	SetEntDataFloat(client, offs_CTFPlayer_flRespawnTimeOverride, time);
 }
 
 static Address GetConditionData(int client, TFCond cond) {
