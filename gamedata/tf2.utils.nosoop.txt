@@ -147,6 +147,20 @@
 		}
 		"Signatures"
 		{
+			"CTFPlayerShared::IsImmuneToPushback()"
+			{
+				// contains unique ref to string "spunup_push_force_immunity"
+				"library"	"server"
+				"linux"		"@_ZNK15CTFPlayerShared18IsImmuneToPushbackEv"
+				"windows"	"\x55\x8B\xEC\x51\x56\x8B\xF1\x57\x6A\x1C"
+			}
+			"CTFPlayerShared::Burn()"
+			{
+				// contains unique ref to string "afterburn_immunity"
+				"library"	"server"
+				"linux"		"@_ZN15CTFPlayerShared4BurnEP9CTFPlayerP13CTFWeaponBasef"
+				"windows"	"\x55\x8B\xEC\x83\xEC\x08\x56\x8B\xF1\x8B\x8E\x90\x01\x00\x00\x8B\x01"
+			}
 			"CTFPlayer::GetEntityForLoadoutSlot()"
 			{
 				// called a few blocks after function with unique x-ref string "enable_misc2_noisemaker"

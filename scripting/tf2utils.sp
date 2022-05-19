@@ -11,7 +11,7 @@
 
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "0.17.0"
+#define PLUGIN_VERSION "0.18.0"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -40,6 +40,8 @@ Handle g_SDKCallIsEntityWearable;
 Handle g_SDKCallPlayerEquipWearable;
 
 Handle g_SDKCallPointInRespawnRoom;
+Handle g_SDKCallPlayerSharedImmuneToPushback;
+Handle g_SDKCallPlayerSharedBurn;
 
 Address offs_ConditionNames;
 Address offs_CTFPlayer_aObjects;
@@ -77,6 +79,9 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	CreateNative("TF2Util_SetPlayerConditionProvider", Native_SetPlayerConditionProvider);
 	CreateNative("TF2Util_GetPlayerBurnDuration", Native_GetPlayerBurnDuration);
 	CreateNative("TF2Util_SetPlayerBurnDuration", Native_SetPlayerBurnDuration);
+	CreateNative("TF2Util_IgnitePlayer", Native_IgnitePlayer);
+	CreateNative("TF2Util_IsPlayerImmuneToPushback", Native_IsPlayerImmuneToPushback);
+	
 	CreateNative("TF2Util_GetPlayerRespawnTimeOverride", Native_GetPlayerRespawnTimeOverride);
 	CreateNative("TF2Util_SetPlayerRespawnTimeOverride", Native_SetPlayerRespawnTimeOverride);
 	
@@ -144,6 +149,19 @@ public void OnPluginStart() {
 	PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
 	PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
 	g_SDKCallPlayerSharedGetMaxHealth = EndPrepSDKCall();
+	
+	StartPrepSDKCall(SDKCall_Raw);
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CTFPlayerShared::Burn()");
+	PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer, VDECODE_FLAG_ALLOWNULL);
+	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer, VDECODE_FLAG_ALLOWNULL);
+	PrepSDKCall_AddParameter(SDKType_Float, SDKPass_Plain);
+	g_SDKCallPlayerSharedBurn = EndPrepSDKCall();
+	
+	StartPrepSDKCall(SDKCall_Raw);
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature,
+			"CTFPlayerShared::IsImmuneToPushback()");
+	PrepSDKCall_SetReturnInfo(SDKType_Bool, SDKPass_Plain);
+	g_SDKCallPlayerSharedImmuneToPushback = EndPrepSDKCall();
 	
 	StartPrepSDKCall(SDKCall_Entity);
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
@@ -364,9 +382,7 @@ int Native_GetMaxHealthBoost(Handle plugin, int nParams) {
 		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
 	}
 	
-	Address offs_Shared = view_as<Address>(GetEntSendPropOffs(client, "m_Shared", true));
-	
-	return SDKCall(g_SDKCallPlayerSharedGetMaxHealth, GetEntityAddress(client) + offs_Shared,
+	return SDKCall(g_SDKCallPlayerSharedGetMaxHealth, GetPlayerSharedAddress(client),
 			bIgnoreAttributes, bIgnoreOverheal);
 }
 
@@ -530,6 +546,19 @@ int Native_GetWeaponMaxClip(Handle plugin, int nParams) {
 	return SDKCall(g_SDKCallWeaponGetMaxClip, entity);
 }
 
+// bool(int client);
+int Native_IsPlayerImmuneToPushback(Handle plugin, int nParams) {
+	int client = GetNativeCell(1);
+	
+	if (!(0 < client <= MaxClients)) {
+		return ThrowNativeError(SP_ERROR_NATIVE, "Client %d index is not valid", client);
+	} else if (!IsClientInGame(client)) {
+		return ThrowNativeError(SP_ERROR_NATIVE, "Client %d is not in game", client);
+	}
+	
+	return SDKCall(g_SDKCallPlayerSharedImmuneToPushback, GetPlayerSharedAddress(client));
+}
+
 // bool(const float[3] position, int entity, bool bRestrictToSameTeam)
 int Native_IsPointInRespawnRoom(Handle plugin, int nParams) {
 	if (IsNativeParamNullVector(1)) {
@@ -677,6 +706,37 @@ any Native_SetPlayerBurnDuration(Handle plugin, int numParams) {
 	SetEntDataFloat(client, pOffsSharedBurnDuration, duration);
 }
 
+// void(int client, int attacker, float duration, int weapon = INVALID_ENT_REFERENCE);
+any Native_IgnitePlayer(Handle plugin, int numParams) {
+	int client = GetNativeCell(1);
+	int attacker = GetNativeCell(2);
+	float duration = GetNativeCell(3);
+	int weapon = GetNativeCell(4);
+	
+	if (!(0 < client <= MaxClients)) {
+		return ThrowNativeError(SP_ERROR_NATIVE, "Client %d index is not valid", client);
+	} else if (!IsClientInGame(client)) {
+		return ThrowNativeError(SP_ERROR_NATIVE, "Client %d is not in game", client);
+	}
+	
+	if (attacker != INVALID_ENT_REFERENCE) {
+		if (!(0 < attacker <= MaxClients)) {
+			return ThrowNativeError(SP_ERROR_NATIVE, "Client %d index is not valid", attacker);
+		} else if (!IsClientInGame(attacker)) {
+			return ThrowNativeError(SP_ERROR_NATIVE, "Client %d is not in game", attacker);
+		}
+	}
+	
+	if (weapon != INVALID_ENT_REFERENCE) {
+		if (!IsValidEntity(weapon) || !IsEntityWeapon(weapon)) {
+			return ThrowNativeError(SP_ERROR_NATIVE, "Entity %d is not a valid weapon", weapon);
+		}
+	}
+	
+	SDKCall(g_SDKCallPlayerSharedBurn, GetPlayerSharedAddress(client), attacker, weapon,
+			duration);
+}
+
 // float(int client);
 any Native_GetPlayerRespawnTimeOverride(Handle plugin, int numParams) {
 	int client = GetNativeCell(1);
@@ -728,6 +788,10 @@ static Address GetConditionData(int client, TFCond cond) {
 			+ view_as<Address>(FindSendPropInfo("CTFPlayer", "m_Shared"))
 			+ offs_CTFPlayerShared_ConditionData);
 	return pCondMemory + view_as<Address>(view_as<int>(cond) * sizeof_TFCondInfo);
+}
+
+static Address GetPlayerSharedAddress(int client) {
+	return GetEntityAddress(client) + FindSendPropInfo("CTFPlayer", "m_Shared");
 }
 
 static bool IsConditionValid(TFCond cond) {
