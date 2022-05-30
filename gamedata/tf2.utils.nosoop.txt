@@ -39,8 +39,8 @@
 				}
 				"windows"
 				{
-					"signature"		"CTFPlayer::RemoveAllObjects()"
-					"offset"		"34"
+					"signature"		"CTFPlayer::AddObject()"
+					"offset"		"54"
 				}
 			}
 			"offsetof(CTFPlayer::m_flRespawnTimeOverride)"
@@ -161,6 +161,12 @@
 				"linux"		"@_ZN15CTFPlayerShared4BurnEP9CTFPlayerP13CTFWeaponBasef"
 				"windows"	"\x55\x8B\xEC\x83\xEC\x08\x56\x8B\xF1\x8B\x8E\x90\x01\x00\x00\x8B\x01"
 			}
+			"CTFPlayer::AddObject()"
+			{
+				// we only use this to get offsetof(CTFPlayer::m_aObjects) on Windows
+				"library"		"server"
+				"windows"		"\x55\x8B\xEC\x53\x56\x57\x8B\x7D\x08\x8B\xD9\x85\xFF\x74\x2A\x8B\x07\x8B\xCF\xFF\x50\x08\x8B\xCF"
+			}
 			"CTFPlayer::GetEntityForLoadoutSlot()"
 			{
 				// called a few blocks after function with unique x-ref string "enable_misc2_noisemaker"
@@ -196,13 +202,6 @@
 				"library"	"server"
 				"linux"		"@_ZN9CTFPlayer14IsReadyToSpawnEv"
 				"windows"	"\x56\x8B\xF1\x80\xBE\x2A\x2A\x00\x00\x00\x74\x04\x32\xC0\x5E\xC3\x8B\x2A\x2A\x2A\x00\x00"
-			}
-			"CTFPlayer::RemoveAllObjects()"
-			{
-				// contains reference to string "object_removed"
-				// we only use this to get offsetof(CTFPlayer::m_aObjects) on Windows
-				"library"		"server"
-				"windows"		"\x55\x8B\xEC\x83\xEC\x08\x8B\xC1\x57"
 			}
 			"CTFPlayerShared::GetMaxBuffedHealth()"
 			{
