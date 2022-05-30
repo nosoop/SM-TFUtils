@@ -714,22 +714,22 @@ any Native_IgnitePlayer(Handle plugin, int numParams) {
 	int weapon = GetNativeCell(4);
 	
 	if (!(0 < client <= MaxClients)) {
-		return ThrowNativeError(SP_ERROR_NATIVE, "Client %d index is not valid", client);
+		ThrowNativeError(SP_ERROR_NATIVE, "Client %d index is not valid", client);
 	} else if (!IsClientInGame(client)) {
-		return ThrowNativeError(SP_ERROR_NATIVE, "Client %d is not in game", client);
+		ThrowNativeError(SP_ERROR_NATIVE, "Client %d is not in game", client);
 	}
 	
 	if (attacker != INVALID_ENT_REFERENCE) {
 		if (!(0 < attacker <= MaxClients)) {
-			return ThrowNativeError(SP_ERROR_NATIVE, "Client %d index is not valid", attacker);
+			ThrowNativeError(SP_ERROR_NATIVE, "Client %d index is not valid", attacker);
 		} else if (!IsClientInGame(attacker)) {
-			return ThrowNativeError(SP_ERROR_NATIVE, "Client %d is not in game", attacker);
+			ThrowNativeError(SP_ERROR_NATIVE, "Client %d is not in game", attacker);
 		}
 	}
 	
 	if (weapon != INVALID_ENT_REFERENCE) {
 		if (!IsValidEntity(weapon) || !IsEntityWeapon(weapon)) {
-			return ThrowNativeError(SP_ERROR_NATIVE, "Entity %d is not a valid weapon", weapon);
+			ThrowNativeError(SP_ERROR_NATIVE, "Entity %d is not a valid weapon", weapon);
 		}
 	}
 	
@@ -791,7 +791,8 @@ static Address GetConditionData(int client, TFCond cond) {
 }
 
 static Address GetPlayerSharedAddress(int client) {
-	return GetEntityAddress(client) + FindSendPropInfo("CTFPlayer", "m_Shared");
+	return GetEntityAddress(client)
+			+ view_as<Address>(FindSendPropInfo("CTFPlayer", "m_Shared"));
 }
 
 static bool IsConditionValid(TFCond cond) {
