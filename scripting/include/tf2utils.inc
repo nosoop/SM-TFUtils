@@ -320,6 +320,15 @@ native bool TF2Util_IsPointInRespawnRoom(const float position[3],
 		int entity = INVALID_ENT_REFERENCE, bool bRestrictToSameTeam = false);
 
 /**
+ * Given the address of a CTFPlayerShared instance, returns the player associated with it.
+ * 
+ * Here be dragons.
+ * 
+ * @param pShared    Address of CTFPlayerShared instance.
+ */
+native int TF2Util_GetPlayerFromSharedAddress(Address pShared);
+
+/**
  * Returns the current maximum health of the player.
  */
 #pragma deprecated Misnamed; use TF2Util_GetEntityMaxHealth or TF2Util_GetPlayerMaxHealthBoost.

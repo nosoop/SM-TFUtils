@@ -11,7 +11,7 @@
 
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "0.18.0"
+#define PLUGIN_VERSION "0.19.0"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -54,6 +54,7 @@ Address offs_CTFPlayer_hMyWearables;
 
 Address offs_CTFPlayerShared_flBurnDuration;
 Address offs_CTFPlayerShared_ConditionData;
+Address offs_CTFPlayerShared_pOuter;
 
 Address offs_TFCondInfo_flDuration;
 Address offs_TFCondInfo_hProvider;
@@ -105,6 +106,8 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	CreateNative("TF2Util_GetPlayerShootPosition", Native_GetPlayerShootPosition);
 	
 	CreateNative("TF2Util_IsPointInRespawnRoom", Native_IsPointInRespawnRoom);
+	
+	CreateNative("TF2Util_GetPlayerFromSharedAddress", Native_GetPlayerFromSharedAddress);
 	
 	// deprecated name for backcompat
 	CreateNative("TF2Util_GetPlayerMaxHealth", Native_GetMaxHealthBoost);
@@ -230,6 +233,9 @@ public void OnPluginStart() {
 	
 	offs_CTFPlayerShared_flBurnDuration = GameConfGetAddressOffset(hGameConf,
 			"CTFPlayerShared::m_flBurnDuration");
+	
+	offs_CTFPlayerShared_pOuter = GameConfGetAddressOffset(hGameConf,
+			"CTFPlayerShared::m_pOuter");
 	
 	sizeof_TFCondInfo = GameConfGetOffset(hGameConf, "sizeof(TFCondInfo_t)");
 	
@@ -761,6 +767,13 @@ any Native_SetPlayerRespawnTimeOverride(Handle plugin, int numParams) {
 		g_flRespawnTimeOverride[client] = time;
 	}
 	return;
+}
+
+// int(Address pShared);
+any Native_GetPlayerFromSharedAddress(Handle plugin, int numParams) {
+	Address pShared = GetNativeCell(1);
+	Address pOuter = DereferencePointer(pShared + offs_CTFPlayerShared_pOuter);
+	return GetEntityFromAddress(pOuter);
 }
 
 bool IsEntityWeapon(int entity) {

@@ -116,6 +116,12 @@
 				"linux"		"3540"
 				"windows"	"3520"
 			}
+			"CTFPlayerShared::m_pOuter"
+			{
+				// checked in CTFPlayerShared::HasDemoShieldEquipped()
+				"linux"		"400"
+				"windows"	"400"
+			}
 			"CTFPlayerShared::m_ConditionData"
 			{
 				"linux"		"8"
