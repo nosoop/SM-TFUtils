@@ -276,8 +276,16 @@ public void OnPluginStart() {
 				"CTFPlayer::m_hMyWearables");
 	}
 	
-	// TODO: use FindSendPropInfo("CTFPlayer", "m_ConditionData")
-	if (offs_CTFPlayerShared_ConditionData <= Address_Null) {
+	int offs_CTFPlayer_Shared = FindSendPropInfo("CTFPlayer", "m_Shared");
+	int offs_CTFPlayer_ConditionData = FindSendPropInfo("CTFPlayer", "m_ConditionData");
+	if (0 < offs_CTFPlayer_Shared < offs_CTFPlayer_ConditionData) {
+		/**
+		 * This works in 1.11; on 1.10, both properties' offsets point to CTFPlayer::m_Shared
+		 * instead, which is incorrect.
+		 */
+		offs_CTFPlayerShared_ConditionData =
+				view_as<Address>(offs_CTFPlayer_ConditionData - offs_CTFPlayer_Shared);
+	} else {
 		offs_CTFPlayerShared_ConditionData = GameConfGetAddressOffset(hGameConf,
 				"CTFPlayerShared::m_ConditionData");
 	}
