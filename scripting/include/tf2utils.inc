@@ -219,6 +219,13 @@ native int TF2Util_GetPlayerObjectCount(int client);
 native int TF2Util_GetPlayerHealer(int client, int index);
 
 /**
+ * Returns the time that the player was last damaged.
+ * 
+ * @errror    Client is not in-game.
+ */
+native float TF2Util_GetPlayerLastDamageReceivedTime(int client);
+
+/**
  * Returns whether or not the given entity is a weapon.
  * 
  * @error Entity is not valid.

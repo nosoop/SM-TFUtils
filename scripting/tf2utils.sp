@@ -11,7 +11,7 @@
 
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "0.19.1"
+#define PLUGIN_VERSION "0.20.0"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -47,6 +47,7 @@ Address offs_ConditionNames;
 Address offs_CTFPlayer_aObjects;
 Address offs_CTFPlayer_aHealers;
 any offs_CTFPlayer_flRespawnTimeOverride;
+any offs_CTFPlayer_flLastDamageTime;
 
 float g_flRespawnTimeOverride[MAXPLAYERS + 1] = { -1.0, ... };
 
@@ -92,6 +93,8 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	CreateNative("TF2Util_GetPlayerObjectCount", Native_GetPlayerObjectCount);
 	
 	CreateNative("TF2Util_GetPlayerHealer", Native_GetPlayerHealer);
+	
+	CreateNative("TF2Util_GetPlayerLastDamageReceivedTime", Native_GetPlayerLastDamageTime);
 	
 	CreateNative("TF2Util_IsEntityWearable", Native_IsEntityWearable);
 	CreateNative("TF2Util_GetPlayerWearable", Native_GetPlayerWearable);
@@ -357,6 +360,9 @@ public void OnPluginStart() {
 	offs_CEconWearable_bAlwaysValid = GameConfGetAddressOffset(hGameConf,
 			"CEconWearable::m_bAlwaysValid");
 	
+	offs_CTFPlayer_flLastDamageTime = GameConfGetAddressOffset(hGameConf,
+			"CTFPlayer::m_flLastDamageTime");
+	
 	delete hGameConf;
 }
 
@@ -586,6 +592,15 @@ int Native_GetPlayerHealer(Handle plugin, int nParams) {
 	Address pData = DereferencePointer(GetEntityAddress(client)
 			+ view_as<Address>(offs_CTFPlayer_aHealers));
 	return EntRefToEntIndex(LoadEntityHandleFromAddress(pData + view_as<Address>(0x24 * index)));
+}
+
+// float(int client);
+any Native_GetPlayerLastDamageTime(Handle plugin, int nParams) {
+	int client = GetNativeCell(1);
+	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
+	}
+	return GetEntDataFloat(client, offs_CTFPlayer_flLastDamageTime);
 }
 
 // bool(int entity);

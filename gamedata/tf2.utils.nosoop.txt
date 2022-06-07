@@ -116,6 +116,11 @@
 				"linux"		"3540"
 				"windows"	"3520"
 			}
+			"CTFPlayer::m_flLastDamageTime"
+			{
+				"linux"		"8528"
+				"windows"	"8524"
+			}
 			"CTFPlayerShared::m_pOuter"
 			{
 				// checked in CTFPlayerShared::HasDemoShieldEquipped()
