@@ -124,6 +124,9 @@ public void OnPluginStart() {
 	StartPrepSDKCall(SDKCall_Player);
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CTFPlayer::TeamFortress_SetSpeed()");
 	g_SDKCallUpdatePlayerSpeed = EndPrepSDKCall();
+	if (!g_SDKCallUpdatePlayerSpeed) {
+		SetFailState("Failed to set up call to " ... "CTFPlayer::TeamFortress_SetSpeed()");
+	}
 	
 	StartPrepSDKCall(SDKCall_Player);
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
@@ -131,6 +134,9 @@ public void OnPluginStart() {
 	PrepSDKCall_AddParameter(SDKType_Float, SDKPass_Plain);
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
 	g_SDKCallPlayerTakeHealth = EndPrepSDKCall();
+	if (!g_SDKCallPlayerTakeHealth) {
+		SetFailState("Failed to set up call to " ... "CBaseEntity::TakeHealth()");
+	}
 	
 	StartPrepSDKCall(SDKCall_Player);
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CTFPlayer::GetMaxAmmo()");
@@ -138,12 +144,19 @@ public void OnPluginStart() {
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
 	g_SDKCallPlayerGetMaxAmmo = EndPrepSDKCall();
+	if (!g_SDKCallPlayerGetMaxAmmo) {
+		SetFailState("Failed to set up call to " ... "CTFPlayer::GetMaxAmmo()");
+	}
 	
 	StartPrepSDKCall(SDKCall_Player);
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual,
 			"CBaseCombatCharacter::Weapon_ShootPosition()");
 	PrepSDKCall_SetReturnInfo(SDKType_Vector, SDKPass_ByValue);
 	g_SDKCallPlayerGetShootPosition = EndPrepSDKCall();
+	if (!g_SDKCallPlayerGetShootPosition) {
+		SetFailState("Failed to set up call to "
+				... "CBaseCombatCharacter::Weapon_ShootPosition()");
+	}
 	
 	StartPrepSDKCall(SDKCall_Raw);
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
@@ -152,6 +165,9 @@ public void OnPluginStart() {
 	PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
 	PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
 	g_SDKCallPlayerSharedGetMaxHealth = EndPrepSDKCall();
+	if (!g_SDKCallPlayerSharedGetMaxHealth) {
+		SetFailState("Failed to set up call to " ... "CTFPlayerShared::GetMaxBuffedHealth()");
+	}
 	
 	StartPrepSDKCall(SDKCall_Raw);
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CTFPlayerShared::Burn()");
@@ -159,42 +175,66 @@ public void OnPluginStart() {
 	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer, VDECODE_FLAG_ALLOWNULL);
 	PrepSDKCall_AddParameter(SDKType_Float, SDKPass_Plain);
 	g_SDKCallPlayerSharedBurn = EndPrepSDKCall();
+	if (!g_SDKCallPlayerSharedBurn) {
+		SetFailState("Failed to set up call to " ... "CTFPlayerShared::Burn()");
+	}
 	
 	StartPrepSDKCall(SDKCall_Raw);
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature,
 			"CTFPlayerShared::IsImmuneToPushback()");
 	PrepSDKCall_SetReturnInfo(SDKType_Bool, SDKPass_Plain);
 	g_SDKCallPlayerSharedImmuneToPushback = EndPrepSDKCall();
+	if (!g_SDKCallPlayerSharedImmuneToPushback) {
+		SetFailState("Failed to set up call to " ... "CTFPlayerShared::IsImmuneToPushback()");
+	}
 	
 	StartPrepSDKCall(SDKCall_Entity);
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual, "CBaseEntity::GetMaxHealth()");
 	g_SDKCallEntityGetMaxHealth = EndPrepSDKCall();
+	if (!g_SDKCallEntityGetMaxHealth) {
+		SetFailState("Failed to set up call to " ... "CBaseEntity::GetMaxHealth()");
+	}
 	
 	StartPrepSDKCall(SDKCall_Entity);
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual, "CBaseEntity::IsBaseCombatWeapon()");
 	PrepSDKCall_SetReturnInfo(SDKType_Bool, SDKPass_Plain);
 	g_SDKCallIsEntityWeapon = EndPrepSDKCall();
+	if (!g_SDKCallIsEntityWeapon) {
+		SetFailState("Failed to set up call to " ... "CBaseEntity::IsBaseCombatWeapon()");
+	}
 	
 	StartPrepSDKCall(SDKCall_Entity);
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual, "CBaseEntity::IsWearable()");
 	PrepSDKCall_SetReturnInfo(SDKType_Bool, SDKPass_Plain);
 	g_SDKCallIsEntityWearable = EndPrepSDKCall();
+	if (!g_SDKCallIsEntityWearable) {
+		SetFailState("Failed to set up call to " ... "CBaseEntity::IsWearable()");
+	}
 	
 	StartPrepSDKCall(SDKCall_Entity);
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual, "CBaseCombatWeapon::GetSlot()");
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
 	g_SDKCallWeaponGetSlot = EndPrepSDKCall();
+	if (!g_SDKCallWeaponGetSlot) {
+		SetFailState("Failed to set up call to " ... "CBaseCombatWeapon::GetSlot()");
+	}
 	
 	StartPrepSDKCall(SDKCall_Entity);
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual, "CTFWeaponBase::GetWeaponID()");
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
 	g_SDKCallWeaponGetID = EndPrepSDKCall();
+	if (!g_SDKCallWeaponGetID) {
+		SetFailState("Failed to set up call to " ... "CTFWeaponBase::GetWeaponID()");
+	}
 	
 	StartPrepSDKCall(SDKCall_Entity);
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual, "CTFWeaponBase::GetMaxClip1()");
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
 	g_SDKCallWeaponGetMaxClip = EndPrepSDKCall();
+	if (!g_SDKCallWeaponGetMaxClip) {
+		SetFailState("Failed to set up call to " ... "CTFWeaponBase::GetMaxClip1()");
+	}
 	
 	StartPrepSDKCall(SDKCall_Player);
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature,
@@ -203,11 +243,17 @@ public void OnPluginStart() {
 	PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
 	PrepSDKCall_SetReturnInfo(SDKType_CBaseEntity, SDKPass_Pointer);
 	g_SDKCallPlayerGetEntityForLoadoutSlot = EndPrepSDKCall();
+	if (!g_SDKCallPlayerGetEntityForLoadoutSlot) {
+		SetFailState("Failed to set up call to " ... "CTFPlayer::GetEntityForLoadoutSlot()");
+	}
 	
 	StartPrepSDKCall(SDKCall_Player);
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual, "CTFPlayer::EquipWearable()");
 	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
 	g_SDKCallPlayerEquipWearable = EndPrepSDKCall();
+	if (!g_SDKCallPlayerEquipWearable) {
+		SetFailState("Failed to set up call to " ... "CTFPlayer::EquipWearable()");
+	}
 	
 	StartPrepSDKCall(SDKCall_Static);
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "PointInRespawnRoom()");
@@ -216,6 +262,11 @@ public void OnPluginStart() {
 	PrepSDKCall_AddParameter(SDKType_Vector, SDKPass_ByRef);
 	PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
 	g_SDKCallPointInRespawnRoom = EndPrepSDKCall();
+	if (!g_SDKCallPointInRespawnRoom) {
+		SetFailState("Failed to set up call to " ... "PointInRespawnRoom()");
+	}
+	
+	// GameConfGetAddressOffset throws fail state if invalid; no need to validate here
 	
 	// networked CUtlVector offset support landed in 1.11; try to locate an offset there first
 	offs_CTFPlayer_hMyWearables =
