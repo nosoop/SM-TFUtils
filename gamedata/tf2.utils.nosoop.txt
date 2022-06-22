@@ -102,9 +102,9 @@
 			}
 			"CTFPlayer::EquipWearable()"
 			{
-				"windows"	"434"
-				"linux"		"435"
-				"mac"		"435"
+				"windows"	"435"
+				"linux"		"436"
+				"mac"		"436"
 			}
 			
 			// member offsets
