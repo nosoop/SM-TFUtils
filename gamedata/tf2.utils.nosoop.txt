@@ -150,6 +150,13 @@
 				"linux"		"20"
 				"windows"	"20"
 			}
+
+			"CEconWearable::m_bAlwaysValid"
+			{
+				// CEconWearable ctor
+				"linux"		"1428"
+				"windows"	"1428"
+			}
 		}
 		"Signatures"
 		{
