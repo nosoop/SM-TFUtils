@@ -155,7 +155,7 @@
 			{
 				// CEconWearable ctor
 				"linux"		"1428"
-				"windows"	"1428"
+				"windows"	"1424"
 			}
 		}
 		"Signatures"

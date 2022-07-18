@@ -494,11 +494,9 @@ int Native_SetWearableAlwaysValid(Handle plugin, int numParams) {
 				EntRefToEntIndex(wearable));
 	}
 
-	bool alwaysValid = GetNativeCell(2);
+	bool alwaysValid = GetNativeCell(2) != 0;
 	
-	Address wearableAddr = GetEntityAddress(wearable);
-
-	StoreToAddress(wearableAddr + offs_CEconWearable_bAlwaysValid, alwaysValid, NumberType_Int8);
+	SetEntData(wearable, view_as<int>(offs_CEconWearable_bAlwaysValid), alwaysValid, 1);
 }
 
 // int(int client, int index);
