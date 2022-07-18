@@ -294,6 +294,13 @@ native int TF2Util_GetPlayerLoadoutEntity(int client, int loadoutSlot,
 native void TF2Util_EquipPlayerWearable(int client, int wearable);
 
 /**
+ * Sets the wearable "always valid" member which means it won't get removed in CTFPlayer::ValidateWearables.
+ * 
+ * @error Entity is not a wearable.
+ */
+native void TF2Util_SetWearableAlwaysValid(int wearable, bool alwaysValid);
+
+/**
  * Forces an update to the given player's speed.
  * 
  * @param immediate    Whether or not the speed is updated immediately.  If this is set to

@@ -59,6 +59,8 @@ Address offs_CTFPlayerShared_pOuter;
 Address offs_TFCondInfo_flDuration;
 Address offs_TFCondInfo_hProvider;
 
+Address offs_CEconWearable_bAlwaysValid;
+
 int sizeof_TFCondInfo;
 
 int g_nConditions;
@@ -95,6 +97,7 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	CreateNative("TF2Util_GetPlayerWearable", Native_GetPlayerWearable);
 	CreateNative("TF2Util_GetPlayerWearableCount", Native_GetPlayerWearableCount);
 	CreateNative("TF2Util_EquipPlayerWearable", Native_EquipPlayerWearable);
+	CreateNative("TF2Util_SetWearableAlwaysValid", Native_SetWearableAlwaysValid);
 	
 	CreateNative("TF2Util_IsEntityWeapon", Native_IsEntityWeapon);
 	CreateNative("TF2Util_GetWeaponSlot", Native_GetWeaponSlot);
@@ -350,6 +353,9 @@ public void OnPluginStart() {
 		SetFailState("Could not determine offset of CTFPlayer::m_flRespawnTimeOverride "
 				... " (received %08x)", offs_CTFPlayer_flRespawnTimeOverride);
 	}
+
+	offs_CEconWearable_bAlwaysValid = GameConfGetAddressOffset(hGameConf,
+			"CEconWearable::m_bAlwaysValid");
 	
 	delete hGameConf;
 }
@@ -478,6 +484,19 @@ int Native_EquipPlayerWearable(Handle plugin, int numParams) {
 				"Assertion failed - wearable entity %d not attached to player. "
 				... "Gamedata may need to be updated", wearable);
 	}
+}
+
+// void(int wearable, bool alwaysValid);
+int Native_SetWearableAlwaysValid(Handle plugin, int numParams) {
+	int wearable = GetNativeCell(1);
+	if (!IsEntityWearable(wearable)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Entity index %d is not a wearable",
+				EntRefToEntIndex(wearable));
+	}
+
+	bool alwaysValid = GetNativeCell(2) != 0;
+	
+	SetEntData(wearable, view_as<int>(offs_CEconWearable_bAlwaysValid), alwaysValid, 1);
 }
 
 // int(int client, int index);
