@@ -9,9 +9,10 @@
 #include <sdkhooks>
 #include <tf2_stocks>
 
+#include <stocksoup/convars>
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "0.20.0"
+#define PLUGIN_VERSION "1.0.0"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -364,6 +365,8 @@ public void OnPluginStart() {
 			"CTFPlayer::m_flLastDamageTime");
 	
 	delete hGameConf;
+	
+	CreateVersionConVar("tf2utils_version", "TF2 Utils version.");
 }
 
 public void OnMapStart() {
