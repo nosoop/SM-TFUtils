@@ -16,9 +16,10 @@ jobs:
         submodules: true
 
     - name: Setup SourcePawn Compiler
-      uses: rumblefrog/setup-sp@master
+      uses: rumblefrog/setup-sp@v1.2.1
       with:
         version: "1.10.x"
+        no-spcomp-proxy: true
 
     - name: Setup Ninja Build
       uses: ashutoshvarma/setup-ninja@master
