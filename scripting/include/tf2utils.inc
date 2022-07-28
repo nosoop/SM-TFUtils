@@ -125,7 +125,7 @@ native float TF2Util_GetPlayerBurnDuration(int client);
 /**
  * Updates the remaining burn time on a given player.  This does not ignite players.  This
  * bypasses the 10 second maximum burn duration limitation added in Jungle Inferno; however,
- * this will be clamped the next time the game needs to update the burn duration.
+ * the burn duration will be clamped the next time the player is (re)ignited.
  * 
  * @error Player is not already burning.
  */
@@ -199,29 +199,32 @@ native void TF2Util_SetPlayerRespawnTimeOverride(int client, float time);
 native void TF2Util_GetPlayerShootPosition(int client, float result[3]);
 
 /**
- * @return Object (building) entity index at the given index.
- * @error Entity is not a client or index is out of bounds.
+ * @return    Object (building) entity index at the given array index, or -1 on invalid object
+ *            entity reference.
+ * @error     Invalid client or index is out of bounds.
  */
 native int TF2Util_GetPlayerObject(int client, int index);
 
 /**
- * @return Number of objects (buildings) in a given client's object array.
- * @error Entity is not a client.
+ * @return    Number of objects (buildings) in a given client's object array.
+ * @error     Invalid client.
  */
 native int TF2Util_GetPlayerObjectCount(int client);
 
 /**
- * Returns the healer entity index at the given position in the player's healer array.
+ * Returns the healer entity index at the given index in the player's healer array.
  * To get the number of healers available, use the m_nNumHealers netprop.
  * 
- * @return Healer entity index at the given index.
+ * @return    Healer entity index at the given array index, or -1 on invalid healer entity
+ *            reference.
+ * @error     Index is out of bounds.
  */
 native int TF2Util_GetPlayerHealer(int client, int index);
 
 /**
  * Returns the time that the player was last damaged.
  * 
- * @errror    Client is not in-game.
+ * @error    Invalid client, or index is out of bounds.
  */
 native float TF2Util_GetPlayerLastDamageReceivedTime(int client);
 
@@ -240,7 +243,7 @@ native bool TF2Util_IsEntityWeapon(int entity);
 native bool TF2Util_IsEntityWearable(int entity);
 
 /**
- * Returns the slot for the given weapon entity.  This corresponds to the TFWeaponSlot_*
+ * Returns the weapon entity's designated weapon slot.  This corresponds to the TFWeaponSlot_*
  * constants in tf2_stocks.
  * 
  * @error Entity is not valid or not a weapon.
@@ -264,13 +267,15 @@ native int TF2Util_GetWeaponID(int entity);
 native int TF2Util_GetWeaponMaxClip(int entity);
 
 /**
- * @return Client's wearable entity at the given index.
- * @error Index is negative or out of bounds.
+ * @return    Client's wearable entity index at the given wearable array index, or -1 on invalid
+ *            wearable entity reference.
+ * @error     Invalid client, or index is negative or out of bounds.
  */
 native int TF2Util_GetPlayerWearable(int client, int index);
 
 /**
- * @return Number of items in the player's wearable array.
+ * @return    Number of items in the player's wearable array.
+ * @error     Invalid client.
  */
 native int TF2Util_GetPlayerWearableCount(int client);
 
@@ -287,7 +292,8 @@ native int TF2Util_GetPlayerWearableCount(int client);
  * instead want to use `TF2Util_GetPlayerWearable` / `TF2Util_GetPlayerWearableCount`.
  * Identifying specific occupied cosmetic loadout slots is currently not supported.
  * 
- * @return Entity on the given client occupying the given loadout slot.
+ * @return    Entity index on the given client occupying the given loadout slot, or -1 on
+ *            invalid entity reference or no entity matched.
  */
 native int TF2Util_GetPlayerLoadoutEntity(int client, int loadoutSlot,
 		bool includeWearableWeapons = true);
@@ -301,7 +307,7 @@ native int TF2Util_GetPlayerLoadoutEntity(int client, int loadoutSlot,
 native void TF2Util_EquipPlayerWearable(int client, int wearable);
 
 /**
- * Sets the wearable "always valid" member which means it won't get removed in CTFPlayer::ValidateWearables.
+ * Marks a wearable as "always valid", preventing it from removal during resupply events.
  * 
  * @error Entity is not a wearable.
  */
