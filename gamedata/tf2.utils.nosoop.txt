@@ -56,6 +56,16 @@
 				}
 			}
 		}
+		"Keys"
+		{
+			// space-separated set of hex values corresponding to damage types that are 'damage over time'
+			// the game inlines this functionality so we'll have to implement this ourselves
+			// 0x03 = TF_CUSTOM_BURNING
+			// 0x08 = TF_CUSTOM_BURNING_FLARE
+			// 0x11 = TF_CUSTOM_BURNING_ARROW
+			// 0x22 = TF_CUSTOM_BLEEDING
+			"DOTDamageTypes"		"03 08 11 22"
+		}
 		"Offsets"
 		{
 			// virtual offsets

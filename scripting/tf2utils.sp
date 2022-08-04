@@ -12,7 +12,7 @@
 #include <stocksoup/convars>
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "1.0.0"
+#define PLUGIN_VERSION "1.1.0"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -67,6 +67,9 @@ int sizeof_TFCondInfo;
 
 int g_nConditions;
 
+#define MAX_DOT_DAMAGE_TYPES    16
+int g_nDOTDamageTypes, g_DOTDamageTypes[MAX_DOT_DAMAGE_TYPES];
+
 public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	RegPluginLibrary("nosoop_tf2utils");
 	
@@ -113,6 +116,8 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	CreateNative("TF2Util_GetPlayerShootPosition", Native_GetPlayerShootPosition);
 	
 	CreateNative("TF2Util_IsPointInRespawnRoom", Native_IsPointInRespawnRoom);
+	
+	CreateNative("TF2Util_IsCustomDamageTypeDOT", Native_IsCustomDamageTypeDOT);
 	
 	CreateNative("TF2Util_GetPlayerFromSharedAddress", Native_GetPlayerFromSharedAddress);
 	
@@ -363,6 +368,26 @@ public void OnPluginStart() {
 	
 	offs_CTFPlayer_flLastDamageTime = GameConfGetAddressOffset(hGameConf,
 			"CTFPlayer::m_flLastDamageTime");
+	
+	// allocate 5 chars for each value + delimiter
+	char damageTypes[MAX_DOT_DAMAGE_TYPES * 5];
+	if (!GameConfGetKeyValue(hGameConf, "DOTDamageTypes", damageTypes, sizeof(damageTypes))) {
+		SetFailState("Could not retrieve DOTDamageTypes values");
+	} else for (int c, i, res; (i = StringToIntEx(damageTypes[c], res, 0x10)); c += i) {
+		/**
+		 * Parse numeric values from the list.
+		 * I don't expect the game to ever have as many DOT damage types as the hardcoded
+		 * limit of 16 I've initally assigned here, but if it does, don't silently fail.
+		 */
+		if (g_nDOTDamageTypes == MAX_DOT_DAMAGE_TYPES) {
+			SetFailState("Not enough space allocated to parse damage types (limit %d) - "
+					... "update MAX_DOT_DAMAGE_TYPES and recompile", MAX_DOT_DAMAGE_TYPES);
+		} else if (res == 0) {
+			continue;
+		}
+		
+		g_DOTDamageTypes[g_nDOTDamageTypes++] = res;
+	}
 	
 	delete hGameConf;
 	
@@ -863,6 +888,17 @@ any Native_SetPlayerRespawnTimeOverride(Handle plugin, int numParams) {
 		g_flRespawnTimeOverride[client] = time;
 	}
 	return;
+}
+
+// bool(int damagecustom);
+any Native_IsCustomDamageTypeDOT(Handle plugin, int numParams) {
+	int damagecustom = GetNativeCell(1);
+	for (int i; i < g_nDOTDamageTypes; i++) {
+		if (g_DOTDamageTypes[i] == damagecustom) {
+			return true;
+		}
+	}
+	return false;
 }
 
 // int(Address pShared);

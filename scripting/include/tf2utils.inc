@@ -340,6 +340,17 @@ native bool TF2Util_IsPointInRespawnRoom(const float position[3],
 		int entity = INVALID_ENT_REFERENCE, bool bRestrictToSameTeam = false);
 
 /**
+ * Returns whether or not the given custom damage type is for a "damage over time" effect.
+ * This is provided to allow plugins to identify periodic damage events without hardcoding that
+ * information themselves.
+ * 
+ * @param damagecustom    Custom damage type.  This is provided by the SDKHooks OnTakeDamage
+ *                        set of hooks as 'damagecustom', among other places.
+ * @return                True if the given value matches a known DOT effect; false otherwise.
+ */
+native bool TF2Util_IsCustomDamageTypeDOT(int damagecustom);
+
+/**
  * Given the address of a CTFPlayerShared instance, returns the player associated with it.
  * 
  * Here be dragons.
