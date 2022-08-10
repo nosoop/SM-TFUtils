@@ -147,6 +147,84 @@ native void TF2Util_IgnitePlayer(int client, int attacker, float duration,
 		int weapon = INVALID_ENT_REFERENCE);
 
 /**
+ * @param client    Client index.
+ * @return          Number of entries within the bleed list.
+ * @error           Invalid client index, or bleed list index is out of bounds.
+ */
+native int TF2Util_GetPlayerActiveBleedCount(int client);
+
+/**
+ * @param client    Client index.
+ * @param index     Index into the player's bleed list.
+ * @return          Attacker client associated with the bleed effect.
+ * @error           Invalid client index, or bleed list index is out of bounds.
+ */
+native int TF2Util_GetPlayerBleedAttacker(int client, int index);
+
+/**
+ * @param client    Client index.
+ * @param index     Index into the player's bleed list.
+ * @return          Weapon associated with the bleed effect, or INVALID_ENT_REFERENCE if invalid.
+ * @error           Invalid client index, or bleed list index is out of bounds.
+ */
+native int TF2Util_GetPlayerBleedWeapon(int client, int index);
+
+/**
+ * @param client    Client index.
+ * @param index     Index into the player's bleed list.
+ * @return          Time remaining until this bleed effect deals damage to the given client.
+ * @error           Invalid client index, or bleed list index is out of bounds.
+ */
+native float TF2Util_GetPlayerBleedNextDamageTick(int client, int index);
+
+/**
+ * @param client    Client index.
+ * @param index     Index into the player's bleed list.
+ * @return          Time remaining for the bleed effect.
+ * @error           Invalid client index, or bleed list index is out of bounds.
+ */
+native float TF2Util_GetPlayerBleedDuration(int client, int index);
+
+/**
+ * @param client    Client index.
+ * @param index     Index into the player's bleed list.
+ * @return          Amount of damage inflicted per bleed 'tick'.
+ * @error           Invalid client index, or bleed list index is out of bounds.
+ */
+native int TF2Util_GetPlayerBleedDamage(int client, int index);
+
+/**
+ * @param client    Client index.
+ * @param index     Index into the player's bleed list.
+ * @return          Custom damage type associated with the given bleed effect.
+ * @error           Invalid client index, or bleed list index is out of bounds.
+ */
+native int TF2Util_GetPlayerBleedCustomDamageType(int client, int index);
+
+/**
+ * Induces the bleed effect on a client.  This is effectively the same as `TF2_MakeBleed`, with
+ * support for additional parameters that the game provides.
+ * 
+ * If the player already has a matching attacker / weapon combination, that entry will be
+ * updated instead.
+ * 
+ * @param client          Client index.
+ * @param attacker        Attacking client's index.
+ * @param duration        Duration of the effect.  If this is TFCondDuration_Infinite,
+ *                        bleeding continues until the player removes it via medkit or
+ *                        resupply.
+ * @param weapon          Weapon associated with the bleed effect, or INVALID_ENT_REFERENCE to
+ *                        not provide a weapon (behaving the same as `TF2_MakeBleed`).
+ * @param damage          Amount of damage inflicted per bleed 'tick'.
+ * @param damagecustom    Custom damage type (see TF_CUSTOM_* constants).
+ * @return                Index into the player's bleed list where the effect was added, or -1
+ *                        if the plugin could not determine the index.
+ */
+native int TF2Util_MakePlayerBleed(int client, int attacker, float duration,
+		int weapon = INVALID_ENT_REFERENCE, int damage = 4,
+		int damagecustom = TF_CUSTOM_BLEEDING);
+
+/**
  * Returns true if the given player is immune to pushback.
  * 
  * @param client    Client index.

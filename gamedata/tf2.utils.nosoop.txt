@@ -148,6 +148,12 @@
 				"linux"		"520"
 				"windows"	"520"
 			}
+			"CTFPlayerShared::m_BleedList"
+			{
+				// in MakeBleed
+				"linux"		"524"
+				"windows"	"524"
+			}
 			
 			"TFCondInfo_t::m_flDuration"
 			{
@@ -164,6 +170,47 @@
 			{
 				"linux"		"20"
 				"windows"	"20"
+			}
+			
+			"BleedStruct_t::m_hAttacker"
+			{
+				"linux"		"0"
+				"windows"	"0"
+			}
+			"BleedStruct_t::m_hWeapon"
+			{
+				"linux"		"4"
+				"windows"	"4"
+			}
+			"BleedStruct_t::m_flNextTickTime"
+			{
+				"linux"		"8"
+				"windows"	"8"
+			}
+			"BleedStruct_t::m_flExpireTime"
+			{
+				"linux"		"12"
+				"windows"	"12"
+			}
+			"BleedStruct_t::m_nDamage"
+			{
+				"linux"		"16"
+				"windows"	"16"
+			}
+			"BleedStruct_t::m_bPermanent"
+			{
+				"linux"		"20"
+				"windows"	"20"
+			}
+			"BleedStruct_t::m_nCustomDamageType"
+			{
+				"linux"		"24"
+				"windows"	"24"
+			}
+			"sizeof(BleedStruct_t)"
+			{
+				"linux"		"28"
+				"windows"	"28"
 			}
 
 			"CEconWearable::m_bAlwaysValid"
@@ -237,6 +284,13 @@
 				"library"		"server"
 				"linux"			"@_ZN15CTFPlayerShared18GetMaxBuffedHealthEbb"
 				"windows"		"\x55\x8B\xEC\x83\xEC\x08\x56\x8B\xF1\x57\x8B\x8E\x2A\x01\x00\x00"
+			}
+			"CTFPlayerShared::MakeBleed()"
+			{
+				// copied from sm-tf2.games
+				"library"		"server"
+				"linux"			"@_ZN15CTFPlayerShared9MakeBleedEP9CTFPlayerP13CTFWeaponBasefibi"
+				"windows"		"\x55\x8B\xEC\x83\xEC\x2C\x57\x8B\xF9\x89\x7D\xF0"
 			}
 			"CTFPlayerShared::RemoveAllCond()"
 			{

@@ -12,7 +12,7 @@
 #include <stocksoup/convars>
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "1.1.0"
+#define PLUGIN_VERSION "1.2.0"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -43,6 +43,7 @@ Handle g_SDKCallPlayerEquipWearable;
 Handle g_SDKCallPointInRespawnRoom;
 Handle g_SDKCallPlayerSharedImmuneToPushback;
 Handle g_SDKCallPlayerSharedBurn;
+Handle g_SDKCallPlayerSharedMakeBleed;
 
 Address offs_ConditionNames;
 Address offs_CTFPlayer_aObjects;
@@ -55,11 +56,21 @@ float g_flRespawnTimeOverride[MAXPLAYERS + 1] = { -1.0, ... };
 Address offs_CTFPlayer_hMyWearables;
 
 Address offs_CTFPlayerShared_flBurnDuration;
+Address offs_CTFPlayerShared_BleedList;
 Address offs_CTFPlayerShared_ConditionData;
 Address offs_CTFPlayerShared_pOuter;
 
 Address offs_TFCondInfo_flDuration;
 Address offs_TFCondInfo_hProvider;
+
+Address offs_BleedStruct_t_hAttacker;
+Address offs_BleedStruct_t_hWeapon;
+Address offs_BleedStruct_t_flNextBleedTime;
+Address offs_BleedStruct_t_flBleedEndTime;
+Address offs_BleedStruct_t_nDamage;
+Address offs_BleedStruct_t_bPermanent;
+Address offs_BleedStruct_t_nCustomDmg;
+int sizeof_BleedStruct_t;
 
 Address offs_CEconWearable_bAlwaysValid;
 
@@ -88,6 +99,14 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	CreateNative("TF2Util_GetPlayerBurnDuration", Native_GetPlayerBurnDuration);
 	CreateNative("TF2Util_SetPlayerBurnDuration", Native_SetPlayerBurnDuration);
 	CreateNative("TF2Util_IgnitePlayer", Native_IgnitePlayer);
+	CreateNative("TF2Util_GetPlayerActiveBleedCount", Native_GetPlayerActiveBleedCount);
+	CreateNative("TF2Util_GetPlayerBleedAttacker", Native_GetPlayerBleedAttacker);
+	CreateNative("TF2Util_GetPlayerBleedWeapon", Native_GetPlayerBleedWeapon);
+	CreateNative("TF2Util_GetPlayerBleedNextDamageTick", Native_GetPlayerBleedNextDamageTick);
+	CreateNative("TF2Util_GetPlayerBleedDuration", Native_GetPlayerBleedDuration);
+	CreateNative("TF2Util_GetPlayerBleedDamage", Native_GetPlayerBleedDamage);
+	CreateNative("TF2Util_GetPlayerBleedCustomDamageType", Native_GetPlayerBleedDamageType);
+	CreateNative("TF2Util_MakePlayerBleed", Native_MakeBleed);
 	CreateNative("TF2Util_IsPlayerImmuneToPushback", Native_IsPlayerImmuneToPushback);
 	
 	CreateNative("TF2Util_GetPlayerRespawnTimeOverride", Native_GetPlayerRespawnTimeOverride);
@@ -189,6 +208,19 @@ public void OnPluginStart() {
 	g_SDKCallPlayerSharedBurn = EndPrepSDKCall();
 	if (!g_SDKCallPlayerSharedBurn) {
 		SetFailState("Failed to set up call to " ... "CTFPlayerShared::Burn()");
+	}
+	
+	StartPrepSDKCall(SDKCall_Raw);
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CTFPlayerShared::MakeBleed()");
+	PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
+	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer, VDECODE_FLAG_ALLOWNULL);
+	PrepSDKCall_AddParameter(SDKType_Float, SDKPass_Plain);
+	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
+	PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
+	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
+	g_SDKCallPlayerSharedMakeBleed = EndPrepSDKCall();
+	if (!g_SDKCallPlayerSharedMakeBleed) {
+		SetFailState("Failed to set up call to " ... "CTFPlayerShared::MakeBleed()");
 	}
 	
 	StartPrepSDKCall(SDKCall_Raw);
@@ -315,6 +347,24 @@ public void OnPluginStart() {
 	
 	offs_TFCondInfo_hProvider = GameConfGetAddressOffset(hGameConf,
 			"TFCondInfo_t::m_hProvider");
+	
+	offs_CTFPlayerShared_BleedList = GameConfGetAddressOffset(hGameConf,
+			"CTFPlayerShared::m_BleedList");
+	offs_BleedStruct_t_hAttacker = GameConfGetAddressOffset(hGameConf,
+			"BleedStruct_t::m_hAttacker");
+	offs_BleedStruct_t_hWeapon = GameConfGetAddressOffset(hGameConf,
+			"BleedStruct_t::m_hWeapon");
+	offs_BleedStruct_t_flNextBleedTime = GameConfGetAddressOffset(hGameConf,
+			"BleedStruct_t::m_flNextTickTime");
+	offs_BleedStruct_t_flBleedEndTime = GameConfGetAddressOffset(hGameConf,
+			"BleedStruct_t::m_flExpireTime");
+	offs_BleedStruct_t_nDamage = GameConfGetAddressOffset(hGameConf,
+			"BleedStruct_t::m_nDamage");
+	offs_BleedStruct_t_bPermanent = GameConfGetAddressOffset(hGameConf,
+			"BleedStruct_t::m_bPermanent");
+	offs_BleedStruct_t_nCustomDmg = GameConfGetAddressOffset(hGameConf,
+			"BleedStruct_t::m_nCustomDamageType");
+	sizeof_BleedStruct_t = GameConfGetOffset(hGameConf, "sizeof(BleedStruct_t)");
 	
 	Address pNumConds = GameConfGetAddress(hGameConf, "&TF_COND_LAST");
 	if (!pNumConds) {
@@ -864,6 +914,127 @@ any Native_IgnitePlayer(Handle plugin, int numParams) {
 			duration);
 }
 
+// int(int client);
+any Native_GetPlayerActiveBleedCount(Handle plugin, int numParams) {
+	int client = GetNativeCell(1);
+	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
+	}
+	return GetPlayerBleedCount(client);
+}
+
+// int(int client, int index);
+any Native_GetPlayerBleedAttacker(Handle plugin, int numParams) {
+	int client = GetNativeCell(1);
+	int index = GetNativeCell(2);
+	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
+	}
+	Address pBleedInfo = GetPlayerBleedInfo(client, index);
+	return LoadEntityHandleFromAddress(pBleedInfo + offs_BleedStruct_t_hAttacker);
+}
+
+// int(int client, int index);
+any Native_GetPlayerBleedWeapon(Handle plugin, int numParams) {
+	int client = GetNativeCell(1);
+	int index = GetNativeCell(2);
+	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
+	}
+	Address pBleedInfo = GetPlayerBleedInfo(client, index);
+	return LoadEntityHandleFromAddress(pBleedInfo + offs_BleedStruct_t_hWeapon);
+}
+
+// float(int client, int index);
+any Native_GetPlayerBleedNextDamageTick(Handle plugin, int numParams) {
+	int client = GetNativeCell(1);
+	int index = GetNativeCell(2);
+	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
+	}
+	Address pBleedInfo = GetPlayerBleedInfo(client, index);
+	float flNextBleedTime = view_as<float>(LoadFromAddress(
+			pBleedInfo + offs_BleedStruct_t_flNextBleedTime, NumberType_Int32));
+	return flNextBleedTime - GetGameTime();
+}
+
+// float(int client, int index);
+any Native_GetPlayerBleedDuration(Handle plugin, int numParams) {
+	// TODO if is permanent, return -1
+	int client = GetNativeCell(1);
+	int index = GetNativeCell(2);
+	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
+	}
+	Address pBleedInfo = GetPlayerBleedInfo(client, index);
+	
+	if (LoadFromAddress(pBleedInfo + offs_BleedStruct_t_bPermanent, NumberType_Int8)) {
+		return -1.0;
+	}
+	float flBleedEndTime = view_as<float>(LoadFromAddress(
+			pBleedInfo + offs_BleedStruct_t_flBleedEndTime, NumberType_Int32));
+	return flBleedEndTime - GetGameTime();
+}
+
+// int(int client, int index);
+any Native_GetPlayerBleedDamage(Handle plugin, int numParams) {
+	int client = GetNativeCell(1);
+	int index = GetNativeCell(2);
+	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
+	}
+	Address pBleedInfo = GetPlayerBleedInfo(client, index);
+	return LoadFromAddress(pBleedInfo + offs_BleedStruct_t_nDamage, NumberType_Int32);
+}
+
+// int(int client, int index);
+any Native_GetPlayerBleedDamageType(Handle plugin, int numParams) {
+	int client = GetNativeCell(1);
+	int index = GetNativeCell(2);
+	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
+	}
+	Address pBleedInfo = GetPlayerBleedInfo(client, index);
+	return LoadFromAddress(pBleedInfo + offs_BleedStruct_t_nCustomDmg, NumberType_Int32);
+}
+
+// int(int client, int attacker, float duration, int weapon = INVALID_ENT_REFERENCE, int damage = 4, int damagecustom = TF_CUSTOM_BLEEDING);
+any Native_MakeBleed(Handle plugin, int numParams) {
+	int client = GetNativeCell(1);
+	int attacker = GetNativeCell(2);
+	float duration = GetNativeCell(3);
+	int weapon = GetNativeCell(4);
+	int damage = GetNativeCell(5);
+	int damagecustom = GetNativeCell(6);
+	
+	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
+	}
+	if (attacker < 1 || attacker > MaxClients || !IsClientInGame(attacker)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Attacker index %d is invalid", client);
+	}
+	if (weapon != INVALID_ENT_REFERENCE && (!IsValidEntity(weapon) || !IsEntityWeapon(weapon))) {
+		ThrowNativeError(SP_ERROR_NATIVE,
+				"Weapon entity %d is not-NULL and invalid or not a weapon", weapon);
+	}
+	
+	SDKCall(g_SDKCallPlayerSharedMakeBleed, GetPlayerSharedAddress(client), attacker, weapon,
+			duration, damage, duration == TFCondDuration_Infinite, damagecustom);
+	
+	int weaponIndex = EntRefToEntIndex(weapon);
+	for (int i, n = GetPlayerBleedCount(client); i < n; i++) {
+		Address pBleedInfo = GetPlayerBleedInfo(client, i);
+		
+		// search the bleed list for the index of the bleed
+		if (LoadEntityHandleFromAddress(pBleedInfo + offs_BleedStruct_t_hWeapon) != weaponIndex
+				|| LoadEntityHandleFromAddress(pBleedInfo + offs_BleedStruct_t_hAttacker) != attacker) {
+			continue;
+		}
+		return i;
+	}
+	return -1;
+}
+
 // float(int client);
 any Native_GetPlayerRespawnTimeOverride(Handle plugin, int numParams) {
 	int client = GetNativeCell(1);
@@ -933,6 +1104,23 @@ static Address GetConditionData(int client, TFCond cond) {
 			+ view_as<Address>(FindSendPropInfo("CTFPlayer", "m_Shared"))
 			+ offs_CTFPlayerShared_ConditionData);
 	return pCondMemory + view_as<Address>(view_as<int>(cond) * sizeof_TFCondInfo);
+}
+
+static int GetPlayerBleedCount(int client) {
+	return GetEntData(client, FindSendPropInfo("CTFPlayer", "m_Shared")
+			+ view_as<int>(offs_CTFPlayerShared_BleedList) + 0xC);
+}
+
+static Address GetPlayerBleedInfo(int client, int index) {
+	int count = GetPlayerBleedCount(client);
+	if (index < 0 || index >= count) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Invalid index %d (count %d)", index, count);
+	}
+	
+	Address pBleedMemory = DereferencePointer(GetEntityAddress(client)
+			+ view_as<Address>(FindSendPropInfo("CTFPlayer", "m_Shared"))
+			+ offs_CTFPlayerShared_BleedList);
+	return pBleedMemory + view_as<Address>(view_as<int>(index) * sizeof_BleedStruct_t);
 }
 
 static Address GetPlayerSharedAddress(int client) {
