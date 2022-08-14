@@ -648,31 +648,19 @@ int Native_IsEntityWearable(Handle plugin, int nParams) {
 
 // int(int entity);
 int Native_GetWeaponSlot(Handle plugin, int nParams) {
-	int entity = GetNativeCell(1);
-	if (!IsEntityWeapon(entity)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Entity index %d (%d) is not a weapon", entity,
-				EntRefToEntIndex(entity));
-	}
+	int entity = GetNativeWeaponEntity(1);
 	return SDKCall(g_SDKCallWeaponGetSlot, entity);
 }
 
 // int(int entity);
 int Native_GetWeaponID(Handle plugin, int nParams) {
-	int entity = GetNativeCell(1);
-	if (!IsEntityWeapon(entity)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Entity index %d (%d) is not a weapon", entity,
-				EntRefToEntIndex(entity));
-	}
+	int entity = GetNativeWeaponEntity(1);
 	return SDKCall(g_SDKCallWeaponGetID, entity);
 }
 
 // int(int entity);
 int Native_GetWeaponMaxClip(Handle plugin, int nParams) {
-	int entity = GetNativeCell(1);
-	if (!IsEntityWeapon(entity)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Entity index %d (%d) is not a weapon", entity,
-				EntRefToEntIndex(entity));
-	}
+	int entity = GetNativeWeaponEntity(1);
 	return SDKCall(g_SDKCallWeaponGetMaxClip, entity);
 }
 
@@ -828,7 +816,7 @@ any Native_IgnitePlayer(Handle plugin, int numParams) {
 	int client = GetNativeInGameClient(1);
 	int attacker = GetNativeCell(2);
 	float duration = GetNativeCell(3);
-	int weapon = GetNativeCell(4);
+	int weapon = GetNativeWeaponEntity(4, .allowNull = true);
 	
 	// NULL is allowed for attacker
 	if (attacker != INVALID_ENT_REFERENCE) {
@@ -836,12 +824,6 @@ any Native_IgnitePlayer(Handle plugin, int numParams) {
 			ThrowNativeError(SP_ERROR_NATIVE, "Client %d index is not valid", attacker);
 		} else if (!IsClientInGame(attacker)) {
 			ThrowNativeError(SP_ERROR_NATIVE, "Client %d is not in game", attacker);
-		}
-	}
-	
-	if (weapon != INVALID_ENT_REFERENCE) {
-		if (!IsValidEntity(weapon) || !IsEntityWeapon(weapon)) {
-			ThrowNativeError(SP_ERROR_NATIVE, "Entity %d is not a valid weapon", weapon);
 		}
 	}
 	
@@ -924,14 +906,9 @@ any Native_MakeBleed(Handle plugin, int numParams) {
 	int client = GetNativeInGameClient(1);
 	int attacker = GetNativeInGameClient(2);
 	float duration = GetNativeCell(3);
-	int weapon = GetNativeCell(4);
+	int weapon = GetNativeWeaponEntity(4, .allowNull = true);
 	int damage = GetNativeCell(5);
 	int damagecustom = GetNativeCell(6);
-	
-	if (weapon != INVALID_ENT_REFERENCE && (!IsValidEntity(weapon) || !IsEntityWeapon(weapon))) {
-		ThrowNativeError(SP_ERROR_NATIVE,
-				"Weapon entity %d is not-NULL and invalid or not a weapon", weapon);
-	}
 	
 	SDKCall(g_SDKCallPlayerSharedMakeBleed, GetPlayerSharedAddress(client), attacker, weapon,
 			duration, damage, duration == TFCondDuration_Infinite, damagecustom);
@@ -989,11 +966,22 @@ any Native_GetPlayerFromSharedAddress(Handle plugin, int numParams) {
 }
 
 bool IsEntityWeapon(int entity) {
-	if (!IsValidEntity(entity)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Entity %d (%d) is invalid", entity,
-				EntRefToEntIndex(entity));
-	}
 	return SDKCall(g_SDKCallIsEntityWeapon, entity);
+}
+
+/**
+ * Gets an entity index or reference from a native parameter.  If the entity is not a valid
+ * weapon, the function throws a native error unless NULL entities are specifically allowed.
+ */
+int GetNativeWeaponEntity(int param, bool allowNull = false) {
+	int entity = GetNativeEntity(param, allowNull);
+	if (allowNull && entity == INVALID_ENT_REFERENCE) {
+		return INVALID_ENT_REFERENCE;
+	} else if (!IsEntityWeapon(entity)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Entity %d is not a weapon (param %d)", entity,
+				param);
+	}
+	return entity;
 }
 
 bool IsEntityWearable(int entity) {
