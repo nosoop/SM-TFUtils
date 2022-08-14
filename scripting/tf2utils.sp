@@ -10,6 +10,7 @@
 #include <tf2_stocks>
 
 #include <stocksoup/convars>
+#include <stocksoup/functions>
 #include <stocksoup/memory>
 
 #define PLUGIN_VERSION "1.2.0"
@@ -478,12 +479,8 @@ void ForceSpeedUpdate(int client) {
 
 // void(int client, bool immediate = false)
 int Native_UpdatePlayerSpeed(Handle plugin, int nParams) {
-	int client = GetNativeCell(1);
+	int client = GetNativeInGameClient(1);
 	bool immediate = GetNativeCell(2);
-	
-	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
-	}
 	
 	g_bDeferredSpeedUpdate[client] = !immediate;
 	if (immediate) {
@@ -493,20 +490,16 @@ int Native_UpdatePlayerSpeed(Handle plugin, int nParams) {
 
 // int(int client, float amount, int bitsHealType = 0);
 int Native_TakeHealth(Handle plugin, int nParams) {
-	int client = GetNativeCell(1);
+	int client = GetNativeInGameClient(1);
 	float amount = GetNativeCell(2);
 	int bitsHealType = GetNativeCell(3);
-	
-	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
-	}
 	
 	return SDKCall(g_SDKCallPlayerTakeHealth, client, amount, bitsHealType);
 }
 
 // int(int client, int ammoIndex, TFClassType playerClass = TFClass_Unknown);
 int Native_GetMaxAmmo(Handle plugin, int nParams) {
-	int client = GetNativeCell(1);
+	int client = GetNativeInGameClient(1);
 	int ammoIndex = GetNativeCell(2);
 	int playerClass = GetNativeCell(3);
 	
@@ -529,13 +522,9 @@ int Native_GetMaxHealth(Handle plugin, int nParams) {
 
 // int(int client, bool bIgnoreAttributes, bool bIgnoreOverheal);
 int Native_GetMaxHealthBoost(Handle plugin, int nParams) {
-	int client = GetNativeCell(1);
+	int client = GetNativeInGameClient(1);
 	bool bIgnoreAttributes = !!GetNativeCell(2);
 	bool bIgnoreOverheal = !!GetNativeCell(3);
-	
-	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
-	}
 	
 	return SDKCall(g_SDKCallPlayerSharedGetMaxHealth, GetPlayerSharedAddress(client),
 			bIgnoreAttributes, bIgnoreOverheal);
@@ -543,10 +532,7 @@ int Native_GetMaxHealthBoost(Handle plugin, int nParams) {
 
 // void(int client, int wearable);
 int Native_EquipPlayerWearable(Handle plugin, int numParams) {
-	int client = GetNativeCell(1);
-	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
-	}
+	int client = GetNativeInGameClient(1);
 	
 	int wearable = GetNativeCell(2);
 	if (!IsEntityWearable(wearable)) {
@@ -585,12 +571,8 @@ int Native_SetWearableAlwaysValid(Handle plugin, int numParams) {
 
 // int(int client, int index);
 int Native_GetPlayerWearable(Handle plugin, int nParams) {
-	int client = GetNativeCell(1);
+	int client = GetNativeInGameClient(1);
 	int index = GetNativeCell(2);
-	
-	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
-	}
 	
 	int count = GetEntData(client, view_as<int>(offs_CTFPlayer_hMyWearables) + 0x0C);
 	if (index < 0 || index >= count) {
@@ -604,19 +586,15 @@ int Native_GetPlayerWearable(Handle plugin, int nParams) {
 
 // int(int client);
 int Native_GetPlayerWearableCount(Handle plugin, int nParams) {
-	int client = GetNativeCell(1);
-	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
-	}
+	int client = GetNativeInGameClient(1);
+	
 	return GetEntData(client, view_as<int>(offs_CTFPlayer_hMyWearables) + 0x0C);
 }
 
 // void(int client, float result[3]);
 int Native_GetPlayerShootPosition(Handle plugin, int nParams) {
-	int client = GetNativeCell(1);
-	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
-	}
+	int client = GetNativeInGameClient(1);
+	
 	float vecResult[3];
 	SDKCall(g_SDKCallPlayerGetShootPosition, client, vecResult);
 	SetNativeArray(2, vecResult, sizeof(vecResult));
@@ -624,12 +602,8 @@ int Native_GetPlayerShootPosition(Handle plugin, int nParams) {
 
 // int(int client, int index);
 int Native_GetPlayerObject(Handle plugin, int nParams) {
-	int client = GetNativeCell(1);
+	int client = GetNativeInGameClient(1);
 	int index = GetNativeCell(2);
-	
-	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
-	}
 	
 	int count = GetEntData(client, view_as<int>(offs_CTFPlayer_aObjects) + 0x0C);
 	if (index < 0 || index >= count) {
@@ -644,10 +618,8 @@ int Native_GetPlayerObject(Handle plugin, int nParams) {
 
 // int(int client);
 int Native_GetPlayerObjectCount(Handle plugin, int nParams) {
-	int client = GetNativeCell(1);
-	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
-	}
+	int client = GetNativeInGameClient(1);
+	
 	return GetEntData(client, view_as<int>(offs_CTFPlayer_aObjects) + 0x0C);
 }
 
@@ -655,12 +627,8 @@ int Native_GetPlayerObjectCount(Handle plugin, int nParams) {
 int Native_GetPlayerHealer(Handle plugin, int nParams) {
 	// Pelipoika did this ages ago https://forums.alliedmods.net/showthread.php?t=306854
 	// it's bundled here for consistency's sake, and in case it needs maintenance in the future
-	int client = GetNativeCell(1);
+	int client = GetNativeInGameClient(1);
 	int index = GetNativeCell(2);
-	
-	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
-	}
 	
 	int count = GetEntProp(client, Prop_Send, "m_nNumHealers");
 	if (index < 0 || index >= count) {
@@ -674,10 +642,8 @@ int Native_GetPlayerHealer(Handle plugin, int nParams) {
 
 // float(int client);
 any Native_GetPlayerLastDamageTime(Handle plugin, int nParams) {
-	int client = GetNativeCell(1);
-	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
-	}
+	int client = GetNativeInGameClient(1);
+	
 	return GetEntDataFloat(client, offs_CTFPlayer_flLastDamageTime);
 }
 
@@ -725,13 +691,7 @@ int Native_GetWeaponMaxClip(Handle plugin, int nParams) {
 
 // bool(int client);
 int Native_IsPlayerImmuneToPushback(Handle plugin, int nParams) {
-	int client = GetNativeCell(1);
-	
-	if (!(0 < client <= MaxClients)) {
-		return ThrowNativeError(SP_ERROR_NATIVE, "Client %d index is not valid", client);
-	} else if (!IsClientInGame(client)) {
-		return ThrowNativeError(SP_ERROR_NATIVE, "Client %d is not in game", client);
-	}
+	int client = GetNativeInGameClient(1);
 	
 	return SDKCall(g_SDKCallPlayerSharedImmuneToPushback, GetPlayerSharedAddress(client));
 }
@@ -758,10 +718,8 @@ int Native_IsPointInRespawnRoom(Handle plugin, int nParams) {
 
 // int(int client, int loadoutSlot, bool includeWearableWeapons);
 int Native_GetPlayerLoadoutEntity(Handle plugin, int numParams) {
-	int client = GetNativeCell(1);
-	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
-	}
+	int client = GetNativeInGameClient(1);
+	
 	int loadoutSlot = GetNativeCell(2);
 	bool check_wearable = numParams <3 ? true : GetNativeCell(3);
 	
@@ -797,7 +755,7 @@ int Native_GetConditionName(Handle plugin, int numParams) {
 
 // float(int client, TFCond cond);
 any Native_GetPlayerConditionDuration(Handle plugin, int numParams) {
-	int client = GetNativeCell(1);
+	int client = GetNativeInGameClient(1);
 	TFCond cond = GetNativeCell(2);
 	
 	if (!IsConditionValid(cond)) {
@@ -812,7 +770,7 @@ any Native_GetPlayerConditionDuration(Handle plugin, int numParams) {
 
 // void(int client, TFCond cond, float duration);
 any Native_SetPlayerConditionDuration(Handle plugin, int numParams) {
-	int client = GetNativeCell(1);
+	int client = GetNativeInGameClient(1);
 	TFCond cond = GetNativeCell(2);
 	float duration = GetNativeCell(3);
 	
@@ -829,7 +787,7 @@ any Native_SetPlayerConditionDuration(Handle plugin, int numParams) {
 
 // int(int client, TFCond cond);
 any Native_GetPlayerConditionProvider(Handle plugin, int numParams) {
-	int client = GetNativeCell(1);
+	int client = GetNativeInGameClient(1);
 	TFCond cond = GetNativeCell(2);
 	
 	if (!IsConditionValid(cond)) {
@@ -844,7 +802,7 @@ any Native_GetPlayerConditionProvider(Handle plugin, int numParams) {
 
 // void(int client, TFCond cond, int provider);
 any Native_SetPlayerConditionProvider(Handle plugin, int numParams) {
-	int client = GetNativeCell(1);
+	int client = GetNativeInGameClient(1);
 	TFCond cond = GetNativeCell(2);
 	int provider = GetNativeCell(3);
 	
@@ -862,7 +820,8 @@ any Native_SetPlayerConditionProvider(Handle plugin, int numParams) {
 
 // float(int client);
 any Native_GetPlayerBurnDuration(Handle plugin, int numParams) {
-	int client = GetNativeCell(1);
+	int client = GetNativeInGameClient(1);
+	
 	if (!TF2_IsPlayerInCondition(client, TFCond_OnFire)) {
 		return 0.0;
 	}
@@ -873,8 +832,9 @@ any Native_GetPlayerBurnDuration(Handle plugin, int numParams) {
 
 // void(int client, float duration);
 any Native_SetPlayerBurnDuration(Handle plugin, int numParams) {
-	int client = GetNativeCell(1);
+	int client = GetNativeInGameClient(1);
 	float duration = GetNativeCell(2);
+	
 	if (!TF2_IsPlayerInCondition(client, TFCond_OnFire)) {
 		return;
 	}
@@ -885,19 +845,14 @@ any Native_SetPlayerBurnDuration(Handle plugin, int numParams) {
 
 // void(int client, int attacker, float duration, int weapon = INVALID_ENT_REFERENCE);
 any Native_IgnitePlayer(Handle plugin, int numParams) {
-	int client = GetNativeCell(1);
+	int client = GetNativeInGameClient(1);
 	int attacker = GetNativeCell(2);
 	float duration = GetNativeCell(3);
 	int weapon = GetNativeCell(4);
 	
-	if (!(0 < client <= MaxClients)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Client %d index is not valid", client);
-	} else if (!IsClientInGame(client)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Client %d is not in game", client);
-	}
-	
+	// NULL is allowed for attacker
 	if (attacker != INVALID_ENT_REFERENCE) {
-		if (!(0 < attacker <= MaxClients)) {
+		if (attacker < 1 || attacker > MaxClients) {
 			ThrowNativeError(SP_ERROR_NATIVE, "Client %d index is not valid", attacker);
 		} else if (!IsClientInGame(attacker)) {
 			ThrowNativeError(SP_ERROR_NATIVE, "Client %d is not in game", attacker);
@@ -916,42 +871,34 @@ any Native_IgnitePlayer(Handle plugin, int numParams) {
 
 // int(int client);
 any Native_GetPlayerActiveBleedCount(Handle plugin, int numParams) {
-	int client = GetNativeCell(1);
-	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
-	}
+	int client = GetNativeInGameClient(1);
+	
 	return GetPlayerBleedCount(client);
 }
 
 // int(int client, int index);
 any Native_GetPlayerBleedAttacker(Handle plugin, int numParams) {
-	int client = GetNativeCell(1);
+	int client = GetNativeInGameClient(1);
 	int index = GetNativeCell(2);
-	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
-	}
+	
 	Address pBleedInfo = GetPlayerBleedInfo(client, index);
 	return LoadEntityHandleFromAddress(pBleedInfo + offs_BleedStruct_t_hAttacker);
 }
 
 // int(int client, int index);
 any Native_GetPlayerBleedWeapon(Handle plugin, int numParams) {
-	int client = GetNativeCell(1);
+	int client = GetNativeInGameClient(1);
 	int index = GetNativeCell(2);
-	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
-	}
+	
 	Address pBleedInfo = GetPlayerBleedInfo(client, index);
 	return LoadEntityHandleFromAddress(pBleedInfo + offs_BleedStruct_t_hWeapon);
 }
 
 // float(int client, int index);
 any Native_GetPlayerBleedNextDamageTick(Handle plugin, int numParams) {
-	int client = GetNativeCell(1);
+	int client = GetNativeInGameClient(1);
 	int index = GetNativeCell(2);
-	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
-	}
+	
 	Address pBleedInfo = GetPlayerBleedInfo(client, index);
 	float flNextBleedTime = view_as<float>(LoadFromAddress(
 			pBleedInfo + offs_BleedStruct_t_flNextBleedTime, NumberType_Int32));
@@ -961,11 +908,9 @@ any Native_GetPlayerBleedNextDamageTick(Handle plugin, int numParams) {
 // float(int client, int index);
 any Native_GetPlayerBleedDuration(Handle plugin, int numParams) {
 	// TODO if is permanent, return -1
-	int client = GetNativeCell(1);
+	int client = GetNativeInGameClient(1);
 	int index = GetNativeCell(2);
-	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
-	}
+	
 	Address pBleedInfo = GetPlayerBleedInfo(client, index);
 	
 	if (LoadFromAddress(pBleedInfo + offs_BleedStruct_t_bPermanent, NumberType_Int8)) {
@@ -978,41 +923,31 @@ any Native_GetPlayerBleedDuration(Handle plugin, int numParams) {
 
 // int(int client, int index);
 any Native_GetPlayerBleedDamage(Handle plugin, int numParams) {
-	int client = GetNativeCell(1);
+	int client = GetNativeInGameClient(1);
 	int index = GetNativeCell(2);
-	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
-	}
+	
 	Address pBleedInfo = GetPlayerBleedInfo(client, index);
 	return LoadFromAddress(pBleedInfo + offs_BleedStruct_t_nDamage, NumberType_Int32);
 }
 
 // int(int client, int index);
 any Native_GetPlayerBleedDamageType(Handle plugin, int numParams) {
-	int client = GetNativeCell(1);
+	int client = GetNativeInGameClient(1);
 	int index = GetNativeCell(2);
-	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
-	}
+	
 	Address pBleedInfo = GetPlayerBleedInfo(client, index);
 	return LoadFromAddress(pBleedInfo + offs_BleedStruct_t_nCustomDmg, NumberType_Int32);
 }
 
 // int(int client, int attacker, float duration, int weapon = INVALID_ENT_REFERENCE, int damage = 4, int damagecustom = TF_CUSTOM_BLEEDING);
 any Native_MakeBleed(Handle plugin, int numParams) {
-	int client = GetNativeCell(1);
-	int attacker = GetNativeCell(2);
+	int client = GetNativeInGameClient(1);
+	int attacker = GetNativeInGameClient(2);
 	float duration = GetNativeCell(3);
 	int weapon = GetNativeCell(4);
 	int damage = GetNativeCell(5);
 	int damagecustom = GetNativeCell(6);
 	
-	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
-	}
-	if (attacker < 1 || attacker > MaxClients || !IsClientInGame(attacker)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Attacker index %d is invalid", client);
-	}
 	if (weapon != INVALID_ENT_REFERENCE && (!IsValidEntity(weapon) || !IsEntityWeapon(weapon))) {
 		ThrowNativeError(SP_ERROR_NATIVE,
 				"Weapon entity %d is not-NULL and invalid or not a weapon", weapon);
@@ -1037,20 +972,14 @@ any Native_MakeBleed(Handle plugin, int numParams) {
 
 // float(int client);
 any Native_GetPlayerRespawnTimeOverride(Handle plugin, int numParams) {
-	int client = GetNativeCell(1);
-	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
-	}
+	int client = GetNativeInGameClient(1);
 	return GetEntDataFloat(client, offs_CTFPlayer_flRespawnTimeOverride);
 }
 
 // void(int client, float time);
 any Native_SetPlayerRespawnTimeOverride(Handle plugin, int numParams) {
-	int client = GetNativeCell(1);
+	int client = GetNativeInGameClient(1);
 	float time = GetNativeCell(2);
-	if (client < 1 || client > MaxClients || !IsClientInGame(client)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is invalid", client);
-	}
 	
 	if (!IsPlayerAlive(client)) {
 		SetPlayerRespawnTimeOverrideInternal(client, time);
