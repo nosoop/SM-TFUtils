@@ -512,10 +512,7 @@ int Native_GetMaxAmmo(Handle plugin, int nParams) {
 
 // int(int entity);
 int Native_GetMaxHealth(Handle plugin, int nParams) {
-	int entity = GetNativeCell(1);
-	if (!IsValidEntity(entity)) {
-		return ThrowNativeError(SP_ERROR_NATIVE, "Entity %d is invalid", entity);
-	}
+	int entity = GetNativeEntity(1);
 	
 	return SDKCall(g_SDKCallEntityGetMaxHealth, entity);
 }
@@ -649,13 +646,13 @@ any Native_GetPlayerLastDamageTime(Handle plugin, int nParams) {
 
 // bool(int entity);
 int Native_IsEntityWeapon(Handle plugin, int nParams) {
-	int entity = GetNativeCell(1);
+	int entity = GetNativeEntity(1);
 	return IsEntityWeapon(entity);
 }
 
 // bool(int entity);
 int Native_IsEntityWearable(Handle plugin, int nParams) {
-	int entity = GetNativeCell(1);
+	int entity = GetNativeEntity(1);
 	return IsEntityWearable(entity);
 }
 
@@ -705,12 +702,7 @@ int Native_IsPointInRespawnRoom(Handle plugin, int nParams) {
 	float origin[3];
 	GetNativeArray(1, origin, sizeof(origin));
 	
-	int entity = GetNativeCell(2);
-	if (entity != INVALID_ENT_REFERENCE && !IsValidEntity(entity)) {
-		return ThrowNativeError(SP_ERROR_NATIVE, "Entity %d (%d) is invalid", entity,
-				EntRefToEntIndex(entity));
-	}
-	
+	int entity = GetNativeEntity(2, .allowNull = true);
 	bool bRestrictToSameTeam = GetNativeCell(3);
 	
 	return SDKCall(g_SDKCallPointInRespawnRoom, entity, origin, bRestrictToSameTeam);
@@ -804,14 +796,12 @@ any Native_GetPlayerConditionProvider(Handle plugin, int numParams) {
 any Native_SetPlayerConditionProvider(Handle plugin, int numParams) {
 	int client = GetNativeInGameClient(1);
 	TFCond cond = GetNativeCell(2);
-	int provider = GetNativeCell(3);
+	int provider = GetNativeEntity(3);
 	
 	if (!IsConditionValid(cond)) {
 		ThrowNativeError(SP_ERROR_NATIVE, "Condition index %d is invalid", cond);
 	} else if (!TF2_IsPlayerInCondition(client, cond)) {
 		ThrowNativeError(SP_ERROR_NATIVE, "Player is not in condition %d", cond);
-	} else if (!IsValidEntity(provider)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Entity %d is invalid", provider);
 	}
 	
 	Address pData = GetConditionData(client, cond);
