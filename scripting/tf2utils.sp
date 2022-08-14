@@ -530,12 +530,7 @@ int Native_GetMaxHealthBoost(Handle plugin, int nParams) {
 // void(int client, int wearable);
 int Native_EquipPlayerWearable(Handle plugin, int numParams) {
 	int client = GetNativeInGameClient(1);
-	
-	int wearable = GetNativeCell(2);
-	if (!IsEntityWearable(wearable)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Entity index %d is not a wearable",
-				EntRefToEntIndex(wearable));
-	}
+	int wearable = GetNativeWearableEntity(2);
 	
 	if (GetEntPropEnt(wearable, Prop_Send, "m_hOuter") != EntRefToEntIndex(wearable)) {
 		ThrowNativeError(SP_ERROR_NATIVE,
@@ -555,12 +550,7 @@ int Native_EquipPlayerWearable(Handle plugin, int numParams) {
 
 // void(int wearable, bool alwaysValid);
 int Native_SetWearableAlwaysValid(Handle plugin, int numParams) {
-	int wearable = GetNativeCell(1);
-	if (!IsEntityWearable(wearable)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Entity index %d is not a wearable",
-				EntRefToEntIndex(wearable));
-	}
-
+	int wearable = GetNativeWearableEntity(1);
 	bool alwaysValid = GetNativeCell(2) != 0;
 	
 	SetEntData(wearable, view_as<int>(offs_CEconWearable_bAlwaysValid), alwaysValid, 1);
@@ -1007,11 +997,20 @@ bool IsEntityWeapon(int entity) {
 }
 
 bool IsEntityWearable(int entity) {
-	if (!IsValidEntity(entity)) {
-		ThrowNativeError(SP_ERROR_NATIVE, "Entity %d (%d) is invalid", entity,
-				EntRefToEntIndex(entity));
-	}
 	return SDKCall(g_SDKCallIsEntityWearable, entity);
+}
+
+/**
+ * Gets an entity index or reference from a native parameter.  If the entity is not a valid
+ * wearable, the function throws a native error.
+ */
+int GetNativeWearableEntity(int param) {
+	int entity = GetNativeEntity(param);
+	if (!IsEntityWearable(entity)) {
+		ThrowNativeError(SP_ERROR_NATIVE, "Entity %d is not a wearable (param %d)", entity,
+				param);
+	}
+	return entity;
 }
 
 static void SetPlayerRespawnTimeOverrideInternal(int client, float time) {
