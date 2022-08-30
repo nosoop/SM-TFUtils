@@ -37,6 +37,7 @@ Handle g_SDKCallIsEntityWeapon;
 Handle g_SDKCallWeaponGetSlot;
 Handle g_SDKCallWeaponGetID;
 Handle g_SDKCallWeaponGetMaxClip;
+Handle g_SDKCallWeaponCanAttack;
 
 Handle g_SDKCallIsEntityWearable;
 Handle g_SDKCallPlayerEquipWearable;
@@ -130,6 +131,7 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	CreateNative("TF2Util_GetWeaponSlot", Native_GetWeaponSlot);
 	CreateNative("TF2Util_GetWeaponID", Native_GetWeaponID);
 	CreateNative("TF2Util_GetWeaponMaxClip", Native_GetWeaponMaxClip);
+	CreateNative("TF2Util_CanWeaponAttack", Native_CanWeaponAttack);
 	
 	CreateNative("TF2Util_GetPlayerLoadoutEntity", Native_GetPlayerLoadoutEntity);
 	
@@ -279,6 +281,14 @@ public void OnPluginStart() {
 	g_SDKCallWeaponGetMaxClip = EndPrepSDKCall();
 	if (!g_SDKCallWeaponGetMaxClip) {
 		SetFailState("Failed to set up call to " ... "CTFWeaponBase::GetMaxClip1()");
+	}
+	
+	StartPrepSDKCall(SDKCall_Entity);
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual, "CTFWeaponBase::CanAttack()");
+	PrepSDKCall_SetReturnInfo(SDKType_Bool, SDKPass_Plain);
+	g_SDKCallWeaponCanAttack = EndPrepSDKCall();
+	if (!g_SDKCallWeaponCanAttack) {
+		SetFailState("Failed to set up call to " ... "CTFWeaponBase::CanAttack()");
 	}
 	
 	StartPrepSDKCall(SDKCall_Player);
@@ -662,6 +672,12 @@ int Native_GetWeaponID(Handle plugin, int nParams) {
 int Native_GetWeaponMaxClip(Handle plugin, int nParams) {
 	int entity = GetNativeWeaponEntity(1);
 	return SDKCall(g_SDKCallWeaponGetMaxClip, entity);
+}
+
+// bool(int weapon);
+int Native_CanWeaponAttack(Handle plugin, int nParams) {
+	int entity = GetNativeWeaponEntity(1);
+	return SDKCall(g_SDKCallWeaponCanAttack, entity);
 }
 
 // bool(int client);

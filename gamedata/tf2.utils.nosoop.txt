@@ -100,6 +100,11 @@
 				"windows"	"66"
 				"linux"		"67"
 			}
+			"CTFWeaponBase::CanAttack()"
+			{
+				"windows"	"424"
+				"linux"		"431"
+			}
 			"CTFWeaponBase::GetMaxClip1()"
 			{
 				"windows"	"324"

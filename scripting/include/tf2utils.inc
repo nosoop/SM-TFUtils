@@ -345,6 +345,17 @@ native int TF2Util_GetWeaponID(int entity);
 native int TF2Util_GetWeaponMaxClip(int entity);
 
 /**
+ * Returns whether or not the weapon entity can be fired.  This is mainly only true if it has a
+ * valid owner that can attack (e.g. not stunned, cloaked, taunting, etc.).  It does not check
+ * the weapon itself (e.g. for sufficent ammo, next attack time, etc.).
+ * 
+ * @param weapon    Weapon entity.
+ * @return          True if the weapon can be fired, false otherwise.
+ * @error           Entity is not valid or not a weapon.
+ */
+native bool TF2Util_CanWeaponAttack(int weapon);
+
+/**
  * @return    Client's wearable entity index at the given wearable array index, or -1 on invalid
  *            wearable entity reference.
  * @error     Invalid client, or index is negative or out of bounds.
