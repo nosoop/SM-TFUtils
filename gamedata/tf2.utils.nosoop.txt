@@ -69,6 +69,11 @@
 		"Offsets"
 		{
 			// virtual offsets
+			"CBaseCombatCharacter::Weapon_Switch()"
+			{
+				"windows"	"274"
+				"linux"		"275"
+			}
 			"CBaseCombatCharacter::Weapon_ShootPosition()"
 			{
 				"windows"	"275"

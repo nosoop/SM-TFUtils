@@ -44,6 +44,19 @@ native int TF2Util_GetPlayerMaxAmmo(int client, int iAmmoIndex,
 		TFClassType playerClass = TFClass_Unknown);
 
 /**
+ * Attempts to update the player's active weapon.  Unlike setting `m_hActiveWeapon` directly,
+ * this ensures that the target weapon can be switched to, ensures that the current weapon can
+ * be holstered, and calls into the appropriate weapons' holster and deploy functions.
+ * 
+ * @param client    Client index.
+ * @param weapon    Weapon entity.  If INVALID_ENT_REFERENCE is passed in, this operation always
+ *                  fails, but will not raise an error.
+ * @return          True if the switch was successful and the specified weapon was deployed.
+ * @error           Entity was invalid (and not INVALID_ENT_REFERENCE) or not a weapon.
+ */
+native bool TF2Util_SetPlayerActiveWeapon(int client, int weapon);
+
+/**
  * Returns the current maximum allowed health of an entity.
  */
 native int TF2Util_GetEntityMaxHealth(int entity);

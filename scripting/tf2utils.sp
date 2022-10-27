@@ -29,6 +29,7 @@ Handle g_SDKCallPlayerGetMaxAmmo;
 Handle g_SDKCallPlayerTakeHealth;
 Handle g_SDKCallPlayerGetShootPosition;
 Handle g_SDKCallPlayerGetEntityForLoadoutSlot;
+Handle g_SDKCallPlayerWeaponSwitch;
 
 Handle g_SDKCallEntityGetMaxHealth;
 Handle g_SDKCallPlayerSharedGetMaxHealth;
@@ -91,6 +92,7 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	CreateNative("TF2Util_GetEntityMaxHealth", Native_GetMaxHealth);
 	CreateNative("TF2Util_GetPlayerMaxHealthBoost", Native_GetMaxHealthBoost);
 	CreateNative("TF2Util_GetPlayerMaxAmmo", Native_GetMaxAmmo);
+	CreateNative("TF2Util_SetPlayerActiveWeapon", Native_SetPlayerActiveWeapon);
 	
 	CreateNative("TF2Util_GetConditionCount", Native_GetConditionCount);
 	CreateNative("TF2Util_GetConditionName", Native_GetConditionName);
@@ -181,6 +183,13 @@ public void OnPluginStart() {
 	if (!g_SDKCallPlayerGetMaxAmmo) {
 		SetFailState("Failed to set up call to " ... "CTFPlayer::GetMaxAmmo()");
 	}
+	
+	StartPrepSDKCall(SDKCall_Player);
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual,
+			"CBaseCombatCharacter::Weapon_Switch()");
+	PrepSDKCall_SetReturnInfo(SDKType_Bool, SDKPass_Plain);
+	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
+	g_SDKCallPlayerWeaponSwitch = EndPrepSDKCall();
 	
 	StartPrepSDKCall(SDKCall_Player);
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual,
@@ -518,6 +527,15 @@ int Native_GetMaxAmmo(Handle plugin, int nParams) {
 	}
 	
 	return SDKCall(g_SDKCallPlayerGetMaxAmmo, client, ammoIndex, playerClass);
+}
+
+// bool(int client, int weapon);
+int Native_SetPlayerActiveWeapon(Handle plugin, int nParams) {
+	int client = GetNativeInGameClient(1);
+	int weapon = GetNativeWeaponEntity(2, .allowNull = true);
+	
+	return SDKCall(g_SDKCallPlayerWeaponSwitch, client,
+			weapon, 0 /* viewmodelindex; unused */) != 0;
 }
 
 // int(int entity);
