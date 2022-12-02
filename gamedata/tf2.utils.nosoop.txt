@@ -40,7 +40,7 @@
 				"windows"
 				{
 					"signature"		"CTFPlayer::AddObject()"
-					"offset"		"54"
+					"offset"		"41"
 				}
 			}
 			"offsetof(CTFPlayer::m_flRespawnTimeOverride)"
@@ -123,8 +123,8 @@
 			"CTFPlayer::m_hMyWearables"
 			{
 				// CUtlVector<EHandle>, currently offsetof(m_flMaxSpeed) - 0x14
-				"linux"		"3540"
-				"windows"	"3520"
+				"linux"		"3848"
+				"windows"	"3824"
 			}
 			"CTFPlayer::m_flLastDamageTime"
 			{
