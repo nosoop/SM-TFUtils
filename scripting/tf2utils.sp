@@ -13,7 +13,7 @@
 #include <stocksoup/functions>
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "1.3.0"
+#define PLUGIN_VERSION "1.3.1"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -189,6 +189,7 @@ public void OnPluginStart() {
 			"CBaseCombatCharacter::Weapon_Switch()");
 	PrepSDKCall_SetReturnInfo(SDKType_Bool, SDKPass_Plain);
 	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
+	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
 	g_SDKCallPlayerWeaponSwitch = EndPrepSDKCall();
 	
 	StartPrepSDKCall(SDKCall_Player);
