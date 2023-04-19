@@ -188,7 +188,7 @@ public void OnPluginStart() {
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual,
 			"CBaseCombatCharacter::Weapon_Switch()");
 	PrepSDKCall_SetReturnInfo(SDKType_Bool, SDKPass_Plain);
-	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
+	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer, VDECODE_FLAG_ALLOWNULL);
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
 	g_SDKCallPlayerWeaponSwitch = EndPrepSDKCall();
 	
