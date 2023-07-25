@@ -138,8 +138,8 @@
 			}
 			"CTFPlayer::m_flLastDamageTime"
 			{
-				"linux"		"8832"
-				"windows"	"8828"
+				"linux"		"8968"
+				"windows"	"8964"
 			}
 			"CTFPlayerShared::m_pOuter"
 			{
@@ -237,7 +237,7 @@
 				// contains unique ref to string "spunup_push_force_immunity"
 				"library"	"server"
 				"linux"		"@_ZNK15CTFPlayerShared18IsImmuneToPushbackEv"
-				"windows"	"\x55\x8B\xEC\x51\x56\x8B\xF1\x57\x6A\x1C"
+				"windows"	"\x55\x8B\xEC\x51\x56\x8B\xF1\x6A\x1C"
 			}
 			"CTFPlayerShared::Burn()"
 			{
@@ -250,7 +250,7 @@
 			{
 				// we only use this to get offsetof(CTFPlayer::m_aObjects) on Windows
 				"library"		"server"
-				"windows"		"\x55\x8B\xEC\x56\x8B\x75\x08\x57\x8B\xF9\x85\xF6\x74\x2A\x8B\x06\x8B\xCE\xFF\x50\x08\x8B\x00\x89\x45\x08\xEB\x2A\xC7\x45\x08\xFF\xFF\xFF\xFF\x8D\x45\x08\x50\x8D\x8F\xB0\x22\x00\x00"
+				"windows"		"\x55\x8B\xEC\x56\x8B\x75\x08\x57\x8B\xF9\x85\xF6\x74\x2A\x8B\x06\x8B\xCE\xFF\x50\x08\x8B\x00\x89\x45\x08\xEB\x2A\xC7\x45\x08\xFF\xFF\xFF\xFF\x8D\x45\x08\x50\x8D\x8F\x38\x23\x00\x00"
 			}
 			"CTFPlayer::GetEntityForLoadoutSlot()"
 			{
