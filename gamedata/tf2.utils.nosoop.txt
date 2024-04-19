@@ -20,14 +20,15 @@
 			{
 				// GetTFConditionName() uses a different value for comparisons on each platform,
 				// so we can't just reuse that function
-				"signature"		"CTFPlayerShared::RemoveAllCond()"
 				"linux"
 				{
-					"offset"	"37"
+					"signature"	"CTFPlayerShared::PulseRageBuff()"
+					"offset"	"496"
 				}
 				"windows"
 				{
-					"offset"	"147"
+					"signature"	"CTFPlayerShared::RemoveAllCond()"
+					"offset"	"155"
 				}
 			}
 			"offsetof(CTFPlayer::m_aObjects)"
@@ -40,7 +41,7 @@
 				"windows"
 				{
 					"signature"		"CTFPlayer::AddObject()"
-					"offset"		"41"
+					"offset"		"37"
 				}
 			}
 			"offsetof(CTFPlayer::m_flRespawnTimeOverride)"
@@ -48,11 +49,11 @@
 				"signature"		"CTFPlayer::IsReadyToSpawn()"
 				"linux"
 				{
-					"offset"	"81"
+					"offset"	"108"
 				}
 				"windows"
 				{
-					"offset"	"137"
+					"offset"	"129"
 				}
 			}
 		}
@@ -250,13 +251,13 @@
 			{
 				// we only use this to get offsetof(CTFPlayer::m_aObjects) on Windows
 				"library"		"server"
-				"windows"		"\x55\x8B\xEC\x56\x8B\x75\x08\x57\x8B\xF9\x85\xF6\x74\x2A\x8B\x06\x8B\xCE\xFF\x50\x08\x8B\x00\x89\x45\x08\xEB\x2A\xC7\x45\x08\xFF\xFF\xFF\xFF\x8D\x45\x08\x50\x8D\x8F\x38\x23\x00\x00"
+				"windows"		"\x55\x8B\xEC\x51\x53\x56\x57\x8B\x7D\x08\x8B\xD9\x85\xFF\x74\x2A\x8B\x07\x8B\xCF\xFF\x50\x08\x8B\x00\xEB\x2A\x83\xC8\xFF\x33\xF6\x89\x45\xFC\x39\xB3\x44\x23\x00\x00"
 			}
 			"CTFPlayer::GetEntityForLoadoutSlot()"
 			{
 				// called a few blocks after function with unique x-ref string "enable_misc2_noisemaker"
 				"library"	"server"
-				"windows"	"\x55\x8B\xEC\x51\x53\x8B\x5D\x2A\x57\x8B\xF9\x89\x7D\x2A\x83\xFB\x07\x74\x2A\x83\xFB\x08\x74\x2A\x83\xFB\x09\x74\x2A\x83\xFB\x0A\x74\x2A"
+				"windows"	"\x55\x8B\xEC\x51\x53\x56\x8B\x75\x08\x8B\xC1"
 				"linux"		"@_ZN9CTFPlayer23GetEntityForLoadoutSlotEib"
 				"mac"		"@_ZN9CTFPlayer23GetEntityForLoadoutSlotEib"
 			}
@@ -264,14 +265,14 @@
 			{
 				"library"		"server"
 				"linux"			"@_ZN9CTFPlayer10GetMaxAmmoEii"
-				"windows"		"\x55\x8B\xEC\x8B\x45\x0C\x56\x57\x8B\xF9\x83\xF8\xFF"
+				"windows"		"\x55\x8B\xEC\x8B\x45\x0C\x53\x8B\xD9"
 			}
 			"CTFPlayer::TeamFortress_SetSpeed()"
 			{
 				// function is x-ref to CTFPlayer::TeamFortress_CalculateMaxSpeed
 				"library"		"server"
 				"linux"			"@_ZN9CTFPlayer21TeamFortress_SetSpeedEv"
-				"windows"		"\x55\x8B\xEC\xA1\x2A\x2A\x2A\x2A\x83\xEC\x1C\x53"
+				"windows"		"\x55\x8B\xEC\x83\xEC\x28\xA1\x2A\x2A\x2A\x2A\x56"
 			}
 			"CTFPlayer::GetObject()"
 			{
@@ -286,14 +287,14 @@
 				// we only use this to get offsetof(CTFPlayer::m_flRespawnTimeOverride)
 				"library"	"server"
 				"linux"		"@_ZN9CTFPlayer14IsReadyToSpawnEv"
-				"windows"	"\x56\x8B\xF1\x80\xBE\x2A\x2A\x00\x00\x00\x74\x04\x32\xC0\x5E\xC3\x8B\x2A\x2A\x2A\x00\x00"
+				"windows"	"\x56\x8B\xF1\x57\x80\xBE\x2A\x2A\x00\x00\x00\x0F\x85\x2A\x00\x00\x00\x8B"
 			}
 			"CTFPlayerShared::GetMaxBuffedHealth()"
 			{
 				// unique xref to call containing unique xref string "add_maxhealth"
 				"library"		"server"
 				"linux"			"@_ZN15CTFPlayerShared18GetMaxBuffedHealthEbb"
-				"windows"		"\x55\x8B\xEC\x83\xEC\x08\x56\x8B\xF1\x57\x8B\x8E\x2A\x01\x00\x00"
+				"windows"		"\x55\x8B\xEC\x83\xEC\x14\x53\x8B\xD9\x56\x57\x8B\x8B\x2A\x01\x00\x00"
 			}
 			"CTFPlayerShared::MakeBleed()"
 			{
@@ -302,12 +303,18 @@
 				"linux"			"@_ZN15CTFPlayerShared9MakeBleedEP9CTFPlayerP13CTFWeaponBasefibi"
 				"windows"		"\x55\x8B\xEC\x83\xEC\x2C\x57\x8B\xF9\x89\x7D\xF0"
 			}
+			"CTFPlayerShared::PulseRageBuff()"
+			{
+				// only used for offsetof(TF_COND_LAST) on Linux
+				"library"		"server"
+				"linux"			"@_ZN15CTFPlayerShared13PulseRageBuffENS_13ERageBuffSlotE"
+			}
 			"CTFPlayerShared::RemoveAllCond()"
 			{
 				// first non-virtual call after semi-unique xref to "Player.Spawn"
 				"library"		"server"
 				"linux"			"@_ZN15CTFPlayerShared13RemoveAllCondEv"
-				"windows"		"\x55\x8B\xEC\x51\x53\x56\x57\x8B\xF9\x8D\x8F\xE0\x00\x00\x00"
+				"windows"		"\x55\x8B\xEC\x83\xEC\x20\x53\x56\x8B\xF1\x57\x8D\x9E\xE0\x00\x00\x00"
 			}
 			"GetTFConditionName()"
 			{
