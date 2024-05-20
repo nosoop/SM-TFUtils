@@ -41,7 +41,7 @@
 				"windows"
 				{
 					"signature"		"CTFPlayer::AddObject()"
-					"offset"		"37"
+					"offset"		"53"
 				}
 			}
 			"offsetof(CTFPlayer::m_flRespawnTimeOverride)"
