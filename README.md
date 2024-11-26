@@ -13,11 +13,13 @@ structure (which can be done with [Source Scramble][]).
 
 ## Installation
 
-Go to the releases page and get the following from the topmost release:
+Go to [the releases page][] and get the following from the topmost release:
 
 - Copy `tf2utils.smx` to `plugins/`
 - Copy `tf2.utils.nosoop.txt` to `gamedata/`
 - Copy `tf2utils.inc` to `scripting/include/`
+
+[the releases page]: https://github.com/nosoop/SM-TFUtils/releases
 
 ## Similar plugins
 
