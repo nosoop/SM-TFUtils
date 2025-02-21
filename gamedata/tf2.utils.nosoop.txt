@@ -294,7 +294,7 @@
 				// unique xref to call containing unique xref string "add_maxhealth"
 				"library"		"server"
 				"linux"			"@_ZN15CTFPlayerShared18GetMaxBuffedHealthEbb"
-				"windows"		"\x55\x8B\xEC\x83\xEC\x20\x53\x56\x57\x8B\xF9\xFF\xB7\xC8\x22\x00\x00"
+				"windows"		"\x55\x8B\xEC\x83\xEC\x14\x53\x8B\xD9\x56\x57\x8B\x8B\x8C\x01\x00\x00"
 			}
 			"CTFPlayerShared::MakeBleed()"
 			{
@@ -314,7 +314,7 @@
 				// first non-virtual call after semi-unique xref to "Player.Spawn"
 				"library"		"server"
 				"linux"			"@_ZN15CTFPlayerShared13RemoveAllCondEv"
-				"windows"		"\x55\x8B\xEC\x83\xEC\x20\x53\x56\x8B\xF1\x57\x8D\x9E\xE0\x00\x00\x00"
+				"windows"		"\x55\x8B\xEC\x83\xEC\x0C\x53\x56\x8B\xF1\x57\x8D\x9E\xE0\x00\x00\x00"
 			}
 			"GetTFConditionName()"
 			{
