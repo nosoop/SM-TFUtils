@@ -272,7 +272,7 @@
 				// function is x-ref to CTFPlayer::TeamFortress_CalculateMaxSpeed
 				"library"		"server"
 				"linux"			"@_ZN9CTFPlayer21TeamFortress_SetSpeedEv"
-				"windows"		"\x55\x8B\xEC\x83\xEC\x28\xA1\x2A\x2A\x2A\x2A\x56"
+				"windows"		"\x55\x8B\xEC\x83\xEC\x24\xA1\x2A\x2A\x2A\x2A\x56\x8B\xF1\x89\x75\xF0"
 			}
 			"CTFPlayer::GetObject()"
 			{
@@ -314,7 +314,7 @@
 				// first non-virtual call after semi-unique xref to "Player.Spawn"
 				"library"		"server"
 				"linux"			"@_ZN15CTFPlayerShared13RemoveAllCondEv"
-				"windows"		"\x55\x8B\xEC\x83\xEC\x20\x53\x56\x8B\xF1\x57\x8D\x9E\xE0\x00\x00\x00"
+				"windows"		"\x55\x8B\xEC\x83\xEC\x0C\x53\x56\x8B\xF1\x57\x8D\x9E\xE0\x00\x00\x00"
 			}
 			"GetTFConditionName()"
 			{
