@@ -137,7 +137,7 @@
 			}
 			"CTFPlayer::m_flLastDamageTime"
 			{
-				"linux"		"8968"
+				"linux"		"8972"
 				"windows"	"8964"
 			}
 			"CTFPlayerShared::m_pOuter"
