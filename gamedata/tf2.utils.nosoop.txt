@@ -117,8 +117,8 @@
 			}
 			"CTFWeaponBase::GetWeaponID()"
 			{
-				"windows"	"381"
-				"linux"		"387"
+				"windows"	"382"
+				"linux"		"388"
 			}
 			"CTFPlayer::EquipWearable()"
 			{
