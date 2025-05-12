@@ -107,8 +107,8 @@
 			}
 			"CTFWeaponBase::CanAttack()"
 			{
-				"windows"	"427"
-				"linux"		"434"
+				"windows"	"428"
+				"linux"		"435"
 			}
 			"CTFWeaponBase::GetMaxClip1()"
 			{
@@ -117,8 +117,8 @@
 			}
 			"CTFWeaponBase::GetWeaponID()"
 			{
-				"windows"	"381"
-				"linux"		"387"
+				"windows"	"382"
+				"linux"		"388"
 			}
 			"CTFPlayer::EquipWearable()"
 			{
