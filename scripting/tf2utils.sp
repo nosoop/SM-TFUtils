@@ -498,7 +498,7 @@ void ForceSpeedUpdate(int client) {
 }
 
 // void(int client, bool immediate = false)
-int Native_UpdatePlayerSpeed(Handle plugin, int nParams) {
+void Native_UpdatePlayerSpeed(Handle plugin, int nParams) {
 	int client = GetNativeInGameClient(1);
 	bool immediate = GetNativeCell(2);
 	
@@ -557,7 +557,7 @@ int Native_GetMaxHealthBoost(Handle plugin, int nParams) {
 }
 
 // void(int client, int wearable);
-int Native_EquipPlayerWearable(Handle plugin, int numParams) {
+void Native_EquipPlayerWearable(Handle plugin, int numParams) {
 	int client = GetNativeInGameClient(1);
 	int wearable = GetNativeWearableEntity(2);
 	
@@ -578,7 +578,7 @@ int Native_EquipPlayerWearable(Handle plugin, int numParams) {
 }
 
 // void(int wearable, bool alwaysValid);
-int Native_SetWearableAlwaysValid(Handle plugin, int numParams) {
+void Native_SetWearableAlwaysValid(Handle plugin, int numParams) {
 	int wearable = GetNativeWearableEntity(1);
 	bool alwaysValid = GetNativeCell(2) != 0;
 	
@@ -608,7 +608,7 @@ int Native_GetPlayerWearableCount(Handle plugin, int nParams) {
 }
 
 // void(int client, float result[3]);
-int Native_GetPlayerShootPosition(Handle plugin, int nParams) {
+void Native_GetPlayerShootPosition(Handle plugin, int nParams) {
 	int client = GetNativeInGameClient(1);
 	
 	float vecResult[3];
@@ -774,7 +774,7 @@ any Native_GetPlayerConditionDuration(Handle plugin, int numParams) {
 }
 
 // void(int client, TFCond cond, float duration);
-any Native_SetPlayerConditionDuration(Handle plugin, int numParams) {
+void Native_SetPlayerConditionDuration(Handle plugin, int numParams) {
 	int client = GetNativeInGameClient(1);
 	TFCond cond = GetNativeCell(2);
 	float duration = GetNativeCell(3);
@@ -806,7 +806,7 @@ any Native_GetPlayerConditionProvider(Handle plugin, int numParams) {
 }
 
 // void(int client, TFCond cond, int provider);
-any Native_SetPlayerConditionProvider(Handle plugin, int numParams) {
+void Native_SetPlayerConditionProvider(Handle plugin, int numParams) {
 	int client = GetNativeInGameClient(1);
 	TFCond cond = GetNativeCell(2);
 	int provider = GetNativeEntity(3);
@@ -834,7 +834,7 @@ any Native_GetPlayerBurnDuration(Handle plugin, int numParams) {
 }
 
 // void(int client, float duration);
-any Native_SetPlayerBurnDuration(Handle plugin, int numParams) {
+void Native_SetPlayerBurnDuration(Handle plugin, int numParams) {
 	int client = GetNativeInGameClient(1);
 	float duration = GetNativeCell(2);
 	
@@ -847,7 +847,7 @@ any Native_SetPlayerBurnDuration(Handle plugin, int numParams) {
 }
 
 // void(int client, int attacker, float duration, int weapon = INVALID_ENT_REFERENCE);
-any Native_IgnitePlayer(Handle plugin, int numParams) {
+void Native_IgnitePlayer(Handle plugin, int numParams) {
 	int client = GetNativeInGameClient(1);
 	int attacker = GetNativeCell(2);
 	float duration = GetNativeCell(3);
@@ -969,7 +969,7 @@ any Native_GetPlayerRespawnTimeOverride(Handle plugin, int numParams) {
 }
 
 // void(int client, float time);
-any Native_SetPlayerRespawnTimeOverride(Handle plugin, int numParams) {
+void Native_SetPlayerRespawnTimeOverride(Handle plugin, int numParams) {
 	int client = GetNativeInGameClient(1);
 	float time = GetNativeCell(2);
 	
