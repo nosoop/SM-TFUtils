@@ -462,6 +462,32 @@ native bool TF2Util_IsCustomDamageTypeDOT(int damagecustom);
 native int TF2Util_GetPlayerFromSharedAddress(Address pShared);
 
 /**
+ * Calls CLagCompensationManager::StartLagCompensation
+ * 
+ * @note			Make sure to call TF2Util_FinishLagCompensation afterwards
+ * 
+ * @param client	Client index
+ * 
+ * @error			Invalid client index or client is not in game
+ * 
+ * @noreturn
+ */
+native void TF2Util_StartLagCompensation(int client);
+
+/**
+ * Calls CLagCompensationManager::FinishLagCompensation
+ * 
+ * @note			Make sure to call TF2Util_StartLagCompensation first
+ * 
+ * @param client	Client index
+ * 
+ * @error			Invalid client index or client is not in game
+ * 
+ * @noreturn
+ */
+native void TF2Util_FinishLagCompensation(int client);
+
+/**
  * Returns the current maximum health of the player.
  */
 #pragma deprecated Misnamed; use TF2Util_GetEntityMaxHealth or TF2Util_GetPlayerMaxHealthBoost.

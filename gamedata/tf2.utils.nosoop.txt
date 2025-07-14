@@ -228,6 +228,11 @@
 				"linux"		"1476"
 				"windows"	"1464"
 			}
+			"GetCurrentCommand"
+			{
+				"linux"		"3512"
+				"windows"	"3512"
+			}
 		}
 		"Signatures"
 		{
@@ -325,6 +330,24 @@
 				"library"		"server"
 				"linux"			"@_Z18PointInRespawnRoomPK11CBaseEntityRK6Vectorb"
 				"windows"		"\x55\x8B\xEC\x53\x33\xDB\x56\x57"
+			}
+			"CLagCompensationManager::StartLagCompensation()"
+			{
+				// "Trying to start a new lag compensation "
+				"library"	"server"
+				"linux"		"@_ZN23CLagCompensationManager20StartLagCompensationEP11CBasePlayerP8CUserCmd"
+				"linux64"	"@_ZN23CLagCompensationManager20StartLagCompensationEP11CBasePlayerP8CUserCmd"
+				"windows"	"\x55\x8B\xEC\x83\xEC\x28\x57\x8B\xF9\x89\x7D\xE4"
+				"windows64"	"\x40\x55\x57\x41\x55\x48\x81\xEC\xA0\x00\x00\x00"
+			}
+			"CLagCompensationManager::FinishLagCompensation()"
+			{
+				// "FinishLagCompensation"
+				"library"	"server"
+				"linux"		"@_ZN23CLagCompensationManager21FinishLagCompensationEP11CBasePlayer"
+				"linux64"	"@_ZN23CLagCompensationManager21FinishLagCompensationEP11CBasePlayer"
+				"windows"	"\x55\x8B\xEC\x83\xEC\x44\x8B\x15\x2A\x2A\x2A\x2A"
+				"windows64"	"\x4C\x8B\xDC\x49\x89\x4B\x08\x53\x48\x81\xEC\xD0\x00\x00\x00"
 			}
 		}
 	}

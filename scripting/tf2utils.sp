@@ -3,6 +3,7 @@
  */
 #pragma semicolon 1
 #include <sourcemod>
+#include <dhooks>
 
 #pragma newdecls required
 
@@ -48,6 +49,9 @@ Handle g_SDKCallPlayerSharedImmuneToPushback;
 Handle g_SDKCallPlayerSharedBurn;
 Handle g_SDKCallPlayerSharedMakeBleed;
 
+Handle g_SDKStartLagCompensation;
+Handle g_SDKFinishLagCompensation;
+
 Address offs_ConditionNames;
 Address offs_CTFPlayer_aObjects;
 Address offs_CTFPlayer_aHealers;
@@ -73,6 +77,9 @@ Address offs_BleedStruct_t_flBleedEndTime;
 Address offs_BleedStruct_t_nDamage;
 Address offs_BleedStruct_t_bPermanent;
 Address offs_BleedStruct_t_nCustomDmg;
+
+Address offs_GetCurrentCommand;
+
 int sizeof_BleedStruct_t;
 
 Address offs_CEconWearable_bAlwaysValid;
@@ -80,6 +87,8 @@ Address offs_CEconWearable_bAlwaysValid;
 int sizeof_TFCondInfo;
 
 int g_nConditions;
+
+Address addr_CLagCompensationManager;
 
 #define MAX_DOT_DAMAGE_TYPES    16
 int g_nDOTDamageTypes, g_DOTDamageTypes[MAX_DOT_DAMAGE_TYPES];
@@ -144,6 +153,9 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	CreateNative("TF2Util_IsCustomDamageTypeDOT", Native_IsCustomDamageTypeDOT);
 	
 	CreateNative("TF2Util_GetPlayerFromSharedAddress", Native_GetPlayerFromSharedAddress);
+	
+	CreateNative("TF2Util_StartLagCompensation", Native_StartLagCompensation);
+	CreateNative("TF2Util_FinishLagCompensation", Native_FinishLagCompensation);
 	
 	// deprecated name for backcompat
 	CreateNative("TF2Util_GetPlayerMaxHealth", Native_GetMaxHealthBoost);
@@ -331,6 +343,21 @@ public void OnPluginStart() {
 		SetFailState("Failed to set up call to " ... "PointInRespawnRoom()");
 	}
 	
+	StartPrepSDKCall(SDKCall_Raw);
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CLagCompensationManager::StartLagCompensation");
+	PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
+	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Pointer);
+	g_SDKStartLagCompensation = EndPrepSDKCall();
+	if(!g_SDKStartLagCompensation)
+		SetFailState("Failed to set up call to CLagCompensationManager::StartLagCompensation");
+	
+	StartPrepSDKCall(SDKCall_Raw);
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CLagCompensationManager::FinishLagCompensation");
+	PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
+	g_SDKFinishLagCompensation = EndPrepSDKCall();
+	if(!g_SDKFinishLagCompensation)
+		SetFailState("Failed to set up call to CLagCompensationManager::FinishLagCompensation");
+	
 	// GameConfGetAddressOffset throws fail state if invalid; no need to validate here
 	
 	// networked CUtlVector offset support landed in 1.11; try to locate an offset there first
@@ -386,6 +413,7 @@ public void OnPluginStart() {
 	offs_BleedStruct_t_nCustomDmg = GameConfGetAddressOffset(hGameConf,
 			"BleedStruct_t::m_nCustomDamageType");
 	sizeof_BleedStruct_t = GameConfGetOffset(hGameConf, "sizeof(BleedStruct_t)");
+	offs_GetCurrentCommand = GameConfGetAddressOffset(hGameConf, "GetCurrentCommand");
 	
 	Address pNumConds = GameConfGetAddress(hGameConf, "&TF_COND_LAST");
 	if (!pNumConds) {
@@ -460,6 +488,8 @@ public void OnPluginStart() {
 		g_DOTDamageTypes[g_nDOTDamageTypes++] = res;
 	}
 	
+	CreateDetour(view_as<GameData>(hGameConf), "CLagCompensationManager::StartLagCompensation", _, DHook_StartLagCompensation);
+	
 	delete hGameConf;
 	
 	CreateVersionConVar("tf2utils_version", "TF2 Utils version.");
@@ -489,6 +519,12 @@ void OnPreThinkPost(int client) {
 		SetPlayerRespawnTimeOverrideInternal(client, g_flRespawnTimeOverride[client]);
 		g_flRespawnTimeOverride[client] = -1.0;
 	}
+}
+
+static MRESReturn DHook_StartLagCompensation(Address address)
+{
+	addr_CLagCompensationManager = address;
+	return MRES_Ignored;
 }
 
 // force speed update; any previous deferred calls are now fulfilled
@@ -1000,6 +1036,36 @@ any Native_GetPlayerFromSharedAddress(Handle plugin, int numParams) {
 	return GetEntityFromAddress(pOuter);
 }
 
+any Native_StartLagCompensation(Handle plugin, int params) {
+	int client = GetNativeCell(1);
+	if(client < 1 || client > MaxClients || !IsClientInGame(client))
+		return ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is not in-game", client);
+
+	if(g_SDKStartLagCompensation && g_SDKFinishLagCompensation && offs_GetCurrentCommand != view_as<Address>(-1))
+	{
+		Address value = addr_CLagCompensationManager;
+		if(value)
+			SDKCall(g_SDKStartLagCompensation, value, client, GetEntityAddress(client) + offs_GetCurrentCommand);
+	}
+
+	return 0;
+}
+
+static any Native_FinishLagCompensation(Handle plugin, int params) {
+	int client = GetNativeCell(1);
+	if(client < 1 || client > MaxClients || !IsClientInGame(client))
+		return ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is not in-game", client);
+	
+	if(g_SDKStartLagCompensation && g_SDKFinishLagCompensation && offs_GetCurrentCommand != view_as<Address>(-1))
+	{
+		Address value = addr_CLagCompensationManager;
+		if(value)
+			SDKCall(g_SDKFinishLagCompensation, value, client);
+	}
+
+	return 0;
+}
+
 bool IsEntityWeapon(int entity) {
 	return SDKCall(g_SDKCallIsEntityWeapon, entity);
 }
@@ -1035,6 +1101,7 @@ int GetNativeWearableEntity(int param) {
 	}
 	return entity;
 }
+
 
 static void SetPlayerRespawnTimeOverrideInternal(int client, float time) {
 	SetEntDataFloat(client, offs_CTFPlayer_flRespawnTimeOverride, time);
@@ -1080,3 +1147,23 @@ static Address GameConfGetAddressOffset(Handle gamedata, const char[] key) {
 	}
 	return offs;
 }
+
+static void CreateDetour(GameData gamedata, const char[] name, DHookCallback preCallback = INVALID_FUNCTION, DHookCallback postCallback = INVALID_FUNCTION)
+{
+	DynamicDetour detour = DynamicDetour.FromConf(gamedata, name);
+	if(detour)
+	{
+		if(preCallback != INVALID_FUNCTION && !detour.Enable(Hook_Pre, preCallback))
+			LogError("Failed to enable pre detour: %s", name);
+		
+		if(postCallback != INVALID_FUNCTION && !detour.Enable(Hook_Post, postCallback))
+			LogError("Failed to enable post detour: %s", name);
+		
+		delete detour;
+	}
+	else
+	{
+		LogError("Could not find %s", name);
+	}
+}
+
