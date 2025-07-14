@@ -1037,9 +1037,7 @@ any Native_GetPlayerFromSharedAddress(Handle plugin, int numParams) {
 }
 
 any Native_StartLagCompensation(Handle plugin, int params) {
-	int client = GetNativeCell(1);
-	if(client < 1 || client > MaxClients || !IsClientInGame(client))
-		return ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is not in-game", client);
+	int client = GetNativeInGameClient(1);
 
 	if(g_SDKStartLagCompensation && g_SDKFinishLagCompensation && offs_GetCurrentCommand != view_as<Address>(-1))
 	{
@@ -1052,9 +1050,7 @@ any Native_StartLagCompensation(Handle plugin, int params) {
 }
 
 static any Native_FinishLagCompensation(Handle plugin, int params) {
-	int client = GetNativeCell(1);
-	if(client < 1 || client > MaxClients || !IsClientInGame(client))
-		return ThrowNativeError(SP_ERROR_NATIVE, "Client index %d is not in-game", client);
+	int client = GetNativeInGameClient(1);
 	
 	if(g_SDKStartLagCompensation && g_SDKFinishLagCompensation && offs_GetCurrentCommand != view_as<Address>(-1))
 	{
