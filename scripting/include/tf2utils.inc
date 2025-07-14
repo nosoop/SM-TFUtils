@@ -462,28 +462,26 @@ native bool TF2Util_IsCustomDamageTypeDOT(int damagecustom);
 native int TF2Util_GetPlayerFromSharedAddress(Address pShared);
 
 /**
- * Calls CLagCompensationManager::StartLagCompensation
+ * Rewinds entity properties back in time with an amount dependent on the latency of
+ * the client specified. Only players are rewound and a history of 1s is kept (per docs).
+ * Under the hood it calls CLagCompensationManager::StartLagCompensation
+ * For more information: https://developer.valvesoftware.com/wiki/Lag_Compensation
+ *
+ * @note            Make sure to call TF2Util_FinishLagCompensation afterwards
+ * @param client    Client index
+ * @error           Invalid client index or client is not in game
  * 
- * @note			Make sure to call TF2Util_FinishLagCompensation afterwards
- * 
- * @param client	Client index
- * 
- * @error			Invalid client index or client is not in game
- * 
- * @noreturn
  */
 native void TF2Util_StartLagCompensation(int client);
 
 /**
- * Calls CLagCompensationManager::FinishLagCompensation
+ * Reverts all time rewinding done by TF2Util_StartLagCompensation. Under
+ * the hood it calls CLagCompensationManager::FinishLagCompensation.
  * 
- * @note			Make sure to call TF2Util_StartLagCompensation first
+ * @note            Make sure to call TF2Util_StartLagCompensation first
+ * @param client    Client index
+ * @error           Invalid client index or client is not in game
  * 
- * @param client	Client index
- * 
- * @error			Invalid client index or client is not in game
- * 
- * @noreturn
  */
 native void TF2Util_FinishLagCompensation(int client);
 
