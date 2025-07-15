@@ -344,19 +344,19 @@ public void OnPluginStart() {
 	}
 	
 	StartPrepSDKCall(SDKCall_Raw);
-	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CLagCompensationManager::StartLagCompensation");
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CLagCompensationManager::StartLagCompensation()");
 	PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Pointer);
 	g_SDKStartLagCompensation = EndPrepSDKCall();
 	if(!g_SDKStartLagCompensation)
-		SetFailState("Failed to set up call to CLagCompensationManager::StartLagCompensation");
+		SetFailState("Failed to set up call to CLagCompensationManager::StartLagCompensation()");
 	
 	StartPrepSDKCall(SDKCall_Raw);
-	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CLagCompensationManager::FinishLagCompensation");
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CLagCompensationManager::FinishLagCompensation()");
 	PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
 	g_SDKFinishLagCompensation = EndPrepSDKCall();
 	if(!g_SDKFinishLagCompensation)
-		SetFailState("Failed to set up call to CLagCompensationManager::FinishLagCompensation");
+		SetFailState("Failed to set up call to CLagCompensationManager::FinishLagCompensation()");
 	
 	// GameConfGetAddressOffset throws fail state if invalid; no need to validate here
 	
