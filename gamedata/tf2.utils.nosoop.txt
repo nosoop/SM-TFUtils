@@ -44,6 +44,18 @@
 					"offset"		"53"
 				}
 			}
+			"offsetof(CTFPlayer::m_flRespawnTimeOverride)"
+			{
+				"signature"		"CTFPlayer::IsReadyToSpawn()"
+				"linux"
+				{
+					"offset"	"108"
+				}
+				"windows"
+				{
+					"offset"	"129"
+				}
+			}
 			"offsetof(::lagcompensation)"
 			{
 				"signature"		"CTFWeaponBaseMelee::Smack()"
@@ -221,6 +233,7 @@
 				"linux"		"28"
 				"windows"	"28"
 			}
+
 			"CEconWearable::m_bAlwaysValid"
 			{
 				// CEconWearable ctor
