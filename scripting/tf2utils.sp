@@ -55,6 +55,7 @@ Address offs_ConditionNames;
 Address offs_CTFPlayer_aObjects;
 Address offs_CTFPlayer_aHealers;
 Address offs_lagcompensation;
+Address offs_CTFPlayer_mpCurrentCommand;
 any offs_CTFPlayer_flRespawnTimeOverride;
 any offs_CTFPlayer_flLastDamageTime;
 
@@ -440,6 +441,12 @@ public void OnPluginStart() {
 				offs_CTFPlayer_aObjects);
 	}
 	
+	offs_CTFPlayer_mpCurrentCommand = GameConfGetAddress(hGameConf,
+			"offs_CTFPlayer_mpCurrentCommand");
+	if(!offs_CTFPlayer_mpCurrentCommand) {
+		SetFailState("Could not determine offset of CTFPlayer::m_pCurrentCommand ");
+	}
+s
 	offs_CTFPlayer_aHealers = view_as<Address>(FindSendPropInfo("CTFPlayer", "m_nNumHealers") + 0xC);
 	
 	Address pOffsPlayerRespawnOverride = GameConfGetAddress(hGameConf,
@@ -1031,11 +1038,11 @@ any Native_GetPlayerFromSharedAddress(Handle plugin, int numParams) {
 any Native_StartLagCompensation(Handle plugin, int params) {
 	int client = GetNativeInGameClient(1);
 
-	if(g_SDKStartLagCompensation && g_SDKFinishLagCompensation && offs_GetCurrentCommand != view_as<Address>(-1))
-	{
+	if(offs_CTFPlayer_mpCurrentCommand != view_as<Address>(-1)) {
 		Address value = offs_lagcompensation;
-		if(value)
-			SDKCall(g_SDKStartLagCompensation, value, client, GetEntityAddress(client) + offs_GetCurrentCommand);
+		if(value) {
+			SDKCall(g_SDKStartLagCompensation, value, client, GetEntityAddress(client) + offs_CTFPlayer_mpCurrentCommand);
+		}
 	}
 
 	return 0;
@@ -1044,11 +1051,11 @@ any Native_StartLagCompensation(Handle plugin, int params) {
 static any Native_FinishLagCompensation(Handle plugin, int params) {
 	int client = GetNativeInGameClient(1);
 	
-	if(g_SDKStartLagCompensation && g_SDKFinishLagCompensation && offs_GetCurrentCommand != view_as<Address>(-1))
-	{
+	if(offs_CTFPlayer_mpCurrentCommand != view_as<Address>(-1)) {
 		Address value = offs_lagcompensation;
-		if(value)
+		if(value) {
 			SDKCall(g_SDKFinishLagCompensation, value, client);
+		}
 	}
 
 	return 0;
@@ -1136,22 +1143,4 @@ static Address GameConfGetAddressOffset(Handle gamedata, const char[] key) {
 	return offs;
 }
 
-static void CreateDetour(GameData gamedata, const char[] name, DHookCallback preCallback = INVALID_FUNCTION, DHookCallback postCallback = INVALID_FUNCTION)
-{
-	DynamicDetour detour = DynamicDetour.FromConf(gamedata, name);
-	if(detour)
-	{
-		if(preCallback != INVALID_FUNCTION && !detour.Enable(Hook_Pre, preCallback))
-			LogError("Failed to enable pre detour: %s", name);
-		
-		if(postCallback != INVALID_FUNCTION && !detour.Enable(Hook_Post, postCallback))
-			LogError("Failed to enable post detour: %s", name);
-		
-		delete detour;
-	}
-	else
-	{
-		LogError("Could not find %s", name);
-	}
-}
 
