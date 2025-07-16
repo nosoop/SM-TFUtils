@@ -56,16 +56,17 @@
 					"offset"	"129"
 				}
 			}
-			"offsetof(::lagcompensation)"
+			"lagcompensation"
 			{
-				"signature"		"CTFWeaponBaseMelee::Smack()"
 				"linux"
 				{
-					"offset"	"29h"
+					"signature"	"lagcompensation"
+					"read"	"0"
 				}
 				"windows"
 				{
-					"offset"	"1Bh"
+					"signature"		"CTFWeaponBaseMelee::Smack()"
+					"read"	"27"
 				}
 			}
 		}
@@ -362,6 +363,11 @@
 				"library"	"server"
 				"linux"		"@_ZN18CTFWeaponBaseMelee5SmackEv"
 				"windows"	"\x55\x8B\xEC\x83\xEC\x74\x57\x8B\xF9\xE8\x2A\x2A\x2A\x2A\x89\x45\xF8\x85\xC0"
+			}
+			"lagcompensation"
+			{
+				"library"	"server"
+				"linux"	"@lagcompensation"
 			}
 		}
 	}

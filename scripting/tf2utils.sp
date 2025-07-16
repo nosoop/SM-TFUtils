@@ -457,9 +457,9 @@ public void OnPluginStart() {
 				... " (received %08x)", offs_CTFPlayer_flRespawnTimeOverride);
 	}
 
-	offs_lagcompensation = GameConfGetAddressOffset(hGameConf, "offsetof(::lagcompensation)");
+	offs_lagcompensation = GameConfGetAddressOffset(hGameConf, "lagcompensation");
 	if(!offs_lagcompensation) {
-		SetFailState("Could not determine address of ::lagcompensation");
+		SetFailState("Could not determine address of lagcompensation");
 	}
 
 	offs_CEconWearable_bAlwaysValid = GameConfGetAddressOffset(hGameConf,
