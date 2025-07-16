@@ -3,7 +3,6 @@
  */
 #pragma semicolon 1
 #include <sourcemod>
-#include <dhooks>
 
 #pragma newdecls required
 
@@ -55,6 +54,7 @@ Handle g_SDKFinishLagCompensation;
 Address offs_ConditionNames;
 Address offs_CTFPlayer_aObjects;
 Address offs_CTFPlayer_aHealers;
+Address offs_lagcompensation;
 any offs_CTFPlayer_flRespawnTimeOverride;
 any offs_CTFPlayer_flLastDamageTime;
 
@@ -78,8 +78,6 @@ Address offs_BleedStruct_t_nDamage;
 Address offs_BleedStruct_t_bPermanent;
 Address offs_BleedStruct_t_nCustomDmg;
 
-Address offs_GetCurrentCommand;
-
 int sizeof_BleedStruct_t;
 
 Address offs_CEconWearable_bAlwaysValid;
@@ -87,8 +85,6 @@ Address offs_CEconWearable_bAlwaysValid;
 int sizeof_TFCondInfo;
 
 int g_nConditions;
-
-Address addr_CLagCompensationManager;
 
 #define MAX_DOT_DAMAGE_TYPES    16
 int g_nDOTDamageTypes, g_DOTDamageTypes[MAX_DOT_DAMAGE_TYPES];
@@ -413,7 +409,6 @@ public void OnPluginStart() {
 	offs_BleedStruct_t_nCustomDmg = GameConfGetAddressOffset(hGameConf,
 			"BleedStruct_t::m_nCustomDamageType");
 	sizeof_BleedStruct_t = GameConfGetOffset(hGameConf, "sizeof(BleedStruct_t)");
-	offs_GetCurrentCommand = GameConfGetAddressOffset(hGameConf, "GetCurrentCommand");
 	
 	Address pNumConds = GameConfGetAddress(hGameConf, "&TF_COND_LAST");
 	if (!pNumConds) {
@@ -462,6 +457,11 @@ public void OnPluginStart() {
 				... " (received %08x)", offs_CTFPlayer_flRespawnTimeOverride);
 	}
 
+	offs_lagcompensation = GameConfGetAddressOffset(hGameConf, "offsetof(::lagcompensation)");
+	if(!offs_lagcompensation) {
+		SetFailState("Could not determine address of ::lagcompensation");
+	}
+
 	offs_CEconWearable_bAlwaysValid = GameConfGetAddressOffset(hGameConf,
 			"CEconWearable::m_bAlwaysValid");
 	
@@ -487,8 +487,6 @@ public void OnPluginStart() {
 		
 		g_DOTDamageTypes[g_nDOTDamageTypes++] = res;
 	}
-	
-	CreateDetour(view_as<GameData>(hGameConf), "CLagCompensationManager::StartLagCompensation", _, DHook_StartLagCompensation);
 	
 	delete hGameConf;
 	
@@ -519,12 +517,6 @@ void OnPreThinkPost(int client) {
 		SetPlayerRespawnTimeOverrideInternal(client, g_flRespawnTimeOverride[client]);
 		g_flRespawnTimeOverride[client] = -1.0;
 	}
-}
-
-static MRESReturn DHook_StartLagCompensation(Address address)
-{
-	addr_CLagCompensationManager = address;
-	return MRES_Ignored;
 }
 
 // force speed update; any previous deferred calls are now fulfilled
@@ -1041,7 +1033,7 @@ any Native_StartLagCompensation(Handle plugin, int params) {
 
 	if(g_SDKStartLagCompensation && g_SDKFinishLagCompensation && offs_GetCurrentCommand != view_as<Address>(-1))
 	{
-		Address value = addr_CLagCompensationManager;
+		Address value = offs_lagcompensation;
 		if(value)
 			SDKCall(g_SDKStartLagCompensation, value, client, GetEntityAddress(client) + offs_GetCurrentCommand);
 	}
@@ -1054,7 +1046,7 @@ static any Native_FinishLagCompensation(Handle plugin, int params) {
 	
 	if(g_SDKStartLagCompensation && g_SDKFinishLagCompensation && offs_GetCurrentCommand != view_as<Address>(-1))
 	{
-		Address value = addr_CLagCompensationManager;
+		Address value = offs_lagcompensation;
 		if(value)
 			SDKCall(g_SDKFinishLagCompensation, value, client);
 	}

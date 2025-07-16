@@ -44,16 +44,16 @@
 					"offset"		"53"
 				}
 			}
-			"offsetof(CTFPlayer::m_flRespawnTimeOverride)"
+			"offsetof(::lagcompensation)"
 			{
-				"signature"		"CTFPlayer::IsReadyToSpawn()"
+				"signature"		"CTFWeaponBaseMelee::Smack()"
 				"linux"
 				{
-					"offset"	"108"
+					"offset"	"29h"
 				}
 				"windows"
 				{
-					"offset"	"129"
+					"offset"	"1Bh"
 				}
 			}
 		}
@@ -221,17 +221,11 @@
 				"linux"		"28"
 				"windows"	"28"
 			}
-			
 			"CEconWearable::m_bAlwaysValid"
 			{
 				// CEconWearable ctor
 				"linux"		"1476"
 				"windows"	"1464"
-			}
-			"GetCurrentCommand"
-			{
-				"linux"		"3512"
-				"windows"	"3512"
 			}
 		}
 		"Signatures"
@@ -348,6 +342,13 @@
 				"linux64"	"@_ZN23CLagCompensationManager21FinishLagCompensationEP11CBasePlayer"
 				"windows"	"\x55\x8B\xEC\x83\xEC\x44\x8B\x15\x2A\x2A\x2A\x2A"
 				"windows64"	"\x4C\x8B\xDC\x49\x89\x4B\x08\x53\x48\x81\xEC\xD0\x00\x00\x00"
+			}
+			"CTFWeaponBaseMelee::Smack()"
+			{
+				// "medic_bonesaw_hits"
+				"library"	"server"
+				"linux"		"@_ZN18CTFWeaponBaseMelee5SmackEv"
+				"windows"	"\x55\x8B\xEC\x83\xEC\x74\x57\x8B\xF9\xE8\x2A\x2A\x2A\x2A\x89\x45\xF8\x85\xC0"
 			}
 		}
 	}
