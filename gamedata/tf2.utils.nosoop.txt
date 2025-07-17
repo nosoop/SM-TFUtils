@@ -62,6 +62,7 @@
 				{
 					"signature"	"lagcompensation"
 					"read"	"0"
+					"offset"	"-12"
 				}
 				"windows"
 				{
@@ -252,11 +253,6 @@
 				// CEconWearable ctor
 				"linux"		"1476"
 				"windows"	"1464"
-			}
-			"lagcompensation::correction"
-			{
-				"linux"	"-12"
-				"windows"	"0"
 			}
 		}
 		"Signatures"

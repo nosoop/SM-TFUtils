@@ -468,8 +468,6 @@ public void OnPluginStart() {
 	if(!offs_lagcompensation) {
 		SetFailState("Could not determine address of lagcompensation");
 	}
-	Address offs_correction = GameConfGetAddressOffset(hGameConf, "lagcompensation::correction");
-	offs_lagcompensation += offs_correction;
 
 	offs_CEconWearable_bAlwaysValid = GameConfGetAddressOffset(hGameConf,
 			"CEconWearable::m_bAlwaysValid");
