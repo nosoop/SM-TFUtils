@@ -1038,25 +1038,15 @@ any Native_GetPlayerFromSharedAddress(Handle plugin, int numParams) {
 any Native_StartLagCompensation(Handle plugin, int params) {
 	int client = GetNativeInGameClient(1);
 
-	if(offs_CTFPlayer_mpCurrentCommand != view_as<Address>(-1)) {
-		Address value = offs_lagcompensation;
-		if(value) {
-			SDKCall(g_SDKStartLagCompensation, value, client, GetEntityAddress(client) + offs_CTFPlayer_mpCurrentCommand);
-		}
-	}
+	SDKCall(g_SDKStartLagCompensation, offs_lagcompensation, client, GetEntityAddress(client) + offs_CTFPlayer_mpCurrentCommand);
 
 	return 0;
 }
 
-static any Native_FinishLagCompensation(Handle plugin, int params) {
+any Native_FinishLagCompensation(Handle plugin, int params) {
 	int client = GetNativeInGameClient(1);
 	
-	if(offs_CTFPlayer_mpCurrentCommand != view_as<Address>(-1)) {
-		Address value = offs_lagcompensation;
-		if(value) {
-			SDKCall(g_SDKFinishLagCompensation, value, client);
-		}
-	}
+	SDKCall(g_SDKFinishLagCompensation, offs_lagcompensation, client);
 
 	return 0;
 }
