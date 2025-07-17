@@ -442,9 +442,9 @@ public void OnPluginStart() {
 	}
 	
 	offs_CTFPlayer_mpCurrentCommand = GameConfGetAddress(hGameConf,
-			"offs_CTFPlayer_mpCurrentCommand");
+			"offsetof(CTFPlayer::m_pCurrentCommand)");
 	if(!offs_CTFPlayer_mpCurrentCommand) {
-		SetFailState("Could not determine offset of CTFPlayer::m_pCurrentCommand ");
+		SetFailState("Could not determine offset of CTFPlayer::m_pCurrentCommand");
 	}
 
 	offs_CTFPlayer_aHealers = view_as<Address>(FindSendPropInfo("CTFPlayer", "m_nNumHealers") + 0xC);
@@ -464,7 +464,7 @@ public void OnPluginStart() {
 				... " (received %08x)", offs_CTFPlayer_flRespawnTimeOverride);
 	}
 
-	offs_lagcompensation = GameConfGetAddressOffset(hGameConf, "lagcompensation");
+	offs_lagcompensation = GameConfGetAddress(hGameConf, "lagcompensation");
 	if(!offs_lagcompensation) {
 		SetFailState("Could not determine address of lagcompensation");
 	}
