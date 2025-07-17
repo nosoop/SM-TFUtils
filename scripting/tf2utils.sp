@@ -446,7 +446,7 @@ public void OnPluginStart() {
 	if(!offs_CTFPlayer_mpCurrentCommand) {
 		SetFailState("Could not determine offset of CTFPlayer::m_pCurrentCommand ");
 	}
-s
+
 	offs_CTFPlayer_aHealers = view_as<Address>(FindSendPropInfo("CTFPlayer", "m_nNumHealers") + 0xC);
 	
 	Address pOffsPlayerRespawnOverride = GameConfGetAddress(hGameConf,
