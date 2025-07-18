@@ -462,7 +462,7 @@ native bool TF2Util_IsCustomDamageTypeDOT(int damagecustom);
 native int TF2Util_GetPlayerFromSharedAddress(Address pShared);
 
 /**
- * Rewinds player properties back in time with an amount dependent on the latency of
+ * Rewinds properties(position, hitbox, etc) back in time with an amount dependent on the latency of
  * the client specified. Only players are rewound and a history of 1s is kept (per docs).
  * Under the hood it calls CLagCompensationManager::StartLagCompensation
  * For more information: https://developer.valvesoftware.com/wiki/Lag_Compensation
