@@ -68,6 +68,7 @@
 				{
 					"signature"		"CTFWeaponBaseMelee::Smack()"
 					"read"	"27"
+					"read"	"0"
 				}
 			}
 			"offsetof(CTFPlayer::m_pCurrentCommand)"
