@@ -61,8 +61,6 @@
 				"linux"
 				{
 					"signature"	"lagcompensation"
-					"read"	"0"
-					"offset"	"-12"
 				}
 				"windows"
 				{
@@ -381,7 +379,7 @@
 			"lagcompensation"
 			{
 				"library"	"server"
-				"linux"	"@lagcompensation"
+				"linux"	"@_ZL24g_LagCompensationManager"
 			}
 		}
 	}
