@@ -74,11 +74,11 @@
 				"signature"		"CTFWeaponBaseMelee::Smack()"
 				"linux"
 				{
-					"read"		"52"
+					"offset"	"52"
 				}
 				"windows"
 				{
-					"read"		"35"
+					"offset"	"35"
 				}
 			}
 		}

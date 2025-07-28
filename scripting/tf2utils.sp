@@ -446,9 +446,13 @@ public void OnPluginStart() {
 				offs_CTFPlayer_aObjects);
 	}
 	
-	offs_CTFPlayer_pCurrentCommand = GameConfGetAddress(hGameConf,
+	Address pOffsPlayerCurrentCommand = GameConfGetAddress(hGameConf,
 			"offsetof(CTFPlayer::m_pCurrentCommand)");
-	if (!offs_CTFPlayer_pCurrentCommand) {
+	
+	offs_CTFPlayer_pCurrentCommand = view_as<Address>(
+			LoadFromAddress(pOffsPlayerCurrentCommand, NumberType_Int32));
+	if (view_as<int>(offs_CTFPlayer_pCurrentCommand) & ~0xFFFF) {
+		// high bits are set - location is definitely not for a property offset
 		SetFailState("Could not determine offset of CTFPlayer::m_pCurrentCommand "
 				... "(received %08x)", offs_CTFPlayer_pCurrentCommand);
 	}
