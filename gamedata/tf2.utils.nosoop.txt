@@ -64,9 +64,9 @@
 				}
 				"windows"
 				{
-					"signature"		"CTFWeaponBaseMelee::Smack()"
-					"read"	"27"
-					"read"	"0"
+					"signature"	"CTFWeaponBaseMelee::Smack()"
+					"read"		"27"
+					"read"		"0"
 				}
 			}
 			"offsetof(CTFPlayer::m_pCurrentCommand)"
@@ -74,11 +74,11 @@
 				"signature"		"CTFWeaponBaseMelee::Smack()"
 				"linux"
 				{
-					"read"	"52"
+					"read"		"52"
 				}
 				"windows"
 				{
-					"read"	"35"
+					"read"		"35"
 				}
 			}
 		}
