@@ -246,7 +246,7 @@
 				"linux"		"28"
 				"windows"	"28"
 			}
-
+			
 			"CEconWearable::m_bAlwaysValid"
 			{
 				// CEconWearable ctor

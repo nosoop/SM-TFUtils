@@ -78,7 +78,6 @@ Address offs_BleedStruct_t_flBleedEndTime;
 Address offs_BleedStruct_t_nDamage;
 Address offs_BleedStruct_t_bPermanent;
 Address offs_BleedStruct_t_nCustomDmg;
-
 int sizeof_BleedStruct_t;
 
 Address offs_CEconWearable_bAlwaysValid;
@@ -341,19 +340,25 @@ public void OnPluginStart() {
 	}
 	
 	StartPrepSDKCall(SDKCall_Raw);
-	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CLagCompensationManager::StartLagCompensation()");
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature,
+			"CLagCompensationManager::StartLagCompensation()");
 	PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Pointer);
 	g_SDKStartLagCompensation = EndPrepSDKCall();
-	if(!g_SDKStartLagCompensation)
-		SetFailState("Failed to set up call to CLagCompensationManager::StartLagCompensation()");
+	if (!g_SDKStartLagCompensation) {
+		SetFailState("Failed to set up call to "
+				... "CLagCompensationManager::StartLagCompensation()");
+	}
 	
 	StartPrepSDKCall(SDKCall_Raw);
-	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "CLagCompensationManager::FinishLagCompensation()");
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature,
+			"CLagCompensationManager::FinishLagCompensation()");
 	PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
 	g_SDKFinishLagCompensation = EndPrepSDKCall();
-	if(!g_SDKFinishLagCompensation)
-		SetFailState("Failed to set up call to CLagCompensationManager::FinishLagCompensation()");
+	if (!g_SDKFinishLagCompensation) {
+		SetFailState("Failed to set up call to "
+				... "CLagCompensationManager::FinishLagCompensation()");
+	}
 	
 	// GameConfGetAddressOffset throws fail state if invalid; no need to validate here
 	
@@ -443,10 +448,11 @@ public void OnPluginStart() {
 	
 	offs_CTFPlayer_mpCurrentCommand = GameConfGetAddress(hGameConf,
 			"offsetof(CTFPlayer::m_pCurrentCommand)");
-	if(!offs_CTFPlayer_mpCurrentCommand) {
-		SetFailState("Could not determine offset of CTFPlayer::m_pCurrentCommand");
+	if (!offs_CTFPlayer_mpCurrentCommand) {
+		SetFailState("Could not determine offset of CTFPlayer::m_pCurrentCommand "
+				... "(received %08x)", offs_CTFPlayer_mpCurrentCommand);
 	}
-
+	
 	offs_CTFPlayer_aHealers = view_as<Address>(FindSendPropInfo("CTFPlayer", "m_nNumHealers") + 0xC);
 	
 	Address pOffsPlayerRespawnOverride = GameConfGetAddress(hGameConf,
@@ -463,12 +469,12 @@ public void OnPluginStart() {
 		SetFailState("Could not determine offset of CTFPlayer::m_flRespawnTimeOverride "
 				... " (received %08x)", offs_CTFPlayer_flRespawnTimeOverride);
 	}
-
+	
 	offs_lagcompensation = GameConfGetAddress(hGameConf, "lagcompensation");
-	if(!offs_lagcompensation) {
+	if (!offs_lagcompensation) {
 		SetFailState("Could not determine address of lagcompensation");
 	}
-
+	
 	offs_CEconWearable_bAlwaysValid = GameConfGetAddressOffset(hGameConf,
 			"CEconWearable::m_bAlwaysValid");
 	
@@ -1037,9 +1043,9 @@ any Native_GetPlayerFromSharedAddress(Handle plugin, int numParams) {
 
 any Native_StartLagCompensation(Handle plugin, int params) {
 	int client = GetNativeInGameClient(1);
-
-	SDKCall(g_SDKStartLagCompensation, offs_lagcompensation, client, GetEntityAddress(client) + offs_CTFPlayer_mpCurrentCommand);
-
+	
+	SDKCall(g_SDKStartLagCompensation, offs_lagcompensation, client,
+			GetEntityAddress(client) + offs_CTFPlayer_mpCurrentCommand);
 	return 0;
 }
 
@@ -1047,7 +1053,6 @@ any Native_FinishLagCompensation(Handle plugin, int params) {
 	int client = GetNativeInGameClient(1);
 	
 	SDKCall(g_SDKFinishLagCompensation, offs_lagcompensation, client);
-
 	return 0;
 }
 
@@ -1086,7 +1091,6 @@ int GetNativeWearableEntity(int param) {
 	}
 	return entity;
 }
-
 
 static void SetPlayerRespawnTimeOverrideInternal(int client, float time) {
 	SetEntDataFloat(client, offs_CTFPlayer_flRespawnTimeOverride, time);
@@ -1132,5 +1136,3 @@ static Address GameConfGetAddressOffset(Handle gamedata, const char[] key) {
 	}
 	return offs;
 }
-
-
