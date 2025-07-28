@@ -56,11 +56,11 @@
 					"offset"	"129"
 				}
 			}
-			"lagcompensation"
+			"g_LagCompensationManager"
 			{
 				"linux"
 				{
-					"signature"	"lagcompensation"
+					"signature"	"g_LagCompensationManager"
 				}
 				"windows"
 				{
@@ -376,7 +376,7 @@
 				"linux"		"@_ZN18CTFWeaponBaseMelee5SmackEv"
 				"windows"	"\x55\x8B\xEC\x83\xEC\x74\x57\x8B\xF9\xE8\x2A\x2A\x2A\x2A\x89\x45\xF8\x85\xC0"
 			}
-			"lagcompensation"
+			"g_LagCompensationManager"
 			{
 				"library"	"server"
 				"linux"	"@_ZL24g_LagCompensationManager"

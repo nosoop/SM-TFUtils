@@ -470,9 +470,9 @@ public void OnPluginStart() {
 				... " (received %08x)", offs_CTFPlayer_flRespawnTimeOverride);
 	}
 	
-	g_LagCompensationManager = GameConfGetAddress(hGameConf, "lagcompensation");
+	g_LagCompensationManager = GameConfGetAddress(hGameConf, "g_LagCompensationManager");
 	if (!g_LagCompensationManager) {
-		SetFailState("Could not determine address of lagcompensation");
+		SetFailState("Could not determine address of g_LagCompensationManager");
 	}
 	
 	offs_CEconWearable_bAlwaysValid = GameConfGetAddressOffset(hGameConf,
