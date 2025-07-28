@@ -442,6 +442,30 @@ native bool TF2Util_IsPointInRespawnRoom(const float position[3],
 		int entity = INVALID_ENT_REFERENCE, bool bRestrictToSameTeam = false);
 
 /**
+ * Rewinds all players' properties (position, hitbox, etc) back to the point in time when the
+ * specified player issued the command currently being processed.
+ * 
+ * See: https://developer.valvesoftware.com/wiki/Lag_Compensation
+ * 
+ * @note            TF2Util_FinishLagCompensation must be called afterwards.
+ * @param client    Client index.
+ * 
+ * @error           Invalid client.
+ */
+native void TF2Util_StartLagCompensation(int client);
+
+/**
+ * Undoes the effects of TF2Util_StartLagCompensation, winding player properties forward up to
+ * the current time on the server.
+ * 
+ * @note            TF2Util_StartLagCompensation must have been called beforehand.
+ * @param client    Client index.
+ * 
+ * @error           Invalid client.
+ */
+native void TF2Util_FinishLagCompensation(int client);
+
+/**
  * Returns whether or not the given custom damage type is for a "damage over time" effect.
  * This is provided to allow plugins to identify periodic damage events without hardcoding that
  * information themselves.
@@ -460,30 +484,6 @@ native bool TF2Util_IsCustomDamageTypeDOT(int damagecustom);
  * @param pShared    Address of CTFPlayerShared instance.
  */
 native int TF2Util_GetPlayerFromSharedAddress(Address pShared);
-
-/**
- * Rewinds properties(position, hitbox, etc) back in time with an amount dependent on the latency of
- * the client specified. Only players are rewound and a history of 1s is kept (per docs).
- * Under the hood it calls CLagCompensationManager::StartLagCompensation
- * For more information: https://developer.valvesoftware.com/wiki/Lag_Compensation
- *
- * @note            Make sure to call TF2Util_FinishLagCompensation afterwards
- * @param client    Client index
- * @error           Invalid client index or client is not in game
- * 
- */
-native void TF2Util_StartLagCompensation(int client);
-
-/**
- * Reverts all time rewinding done by TF2Util_StartLagCompensation. Under
- * the hood it calls CLagCompensationManager::FinishLagCompensation.
- * 
- * @note            Make sure to call TF2Util_StartLagCompensation first
- * @param client    Client index
- * @error           Invalid client index or client is not in game
- * 
- */
-native void TF2Util_FinishLagCompensation(int client);
 
 /**
  * Returns the current maximum health of the player.
