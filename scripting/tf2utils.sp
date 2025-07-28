@@ -1048,6 +1048,7 @@ any Native_GetPlayerFromSharedAddress(Handle plugin, int numParams) {
 	return GetEntityFromAddress(pOuter);
 }
 
+// void(int client);
 any Native_StartLagCompensation(Handle plugin, int params) {
 	int client = GetNativeInGameClient(1);
 	
@@ -1056,6 +1057,7 @@ any Native_StartLagCompensation(Handle plugin, int params) {
 	return 0;
 }
 
+// void(int client);
 any Native_FinishLagCompensation(Handle plugin, int params) {
 	int client = GetNativeInGameClient(1);
 	
