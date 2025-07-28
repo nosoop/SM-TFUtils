@@ -48,14 +48,13 @@ Handle g_SDKCallPlayerSharedImmuneToPushback;
 Handle g_SDKCallPlayerSharedBurn;
 Handle g_SDKCallPlayerSharedMakeBleed;
 
-Handle g_SDKStartLagCompensation;
-Handle g_SDKFinishLagCompensation;
+Handle g_SDKCallStartLagCompensation;
+Handle g_SDKCallFinishLagCompensation;
 
 Address offs_ConditionNames;
 Address offs_CTFPlayer_aObjects;
 Address offs_CTFPlayer_aHealers;
-Address offs_lagcompensation;
-Address offs_CTFPlayer_mpCurrentCommand;
+Address offs_CTFPlayer_pCurrentCommand;
 any offs_CTFPlayer_flRespawnTimeOverride;
 any offs_CTFPlayer_flLastDamageTime;
 
@@ -84,6 +83,7 @@ Address offs_CEconWearable_bAlwaysValid;
 
 int sizeof_TFCondInfo;
 
+Address g_LagCompensationManager;
 int g_nConditions;
 
 #define MAX_DOT_DAMAGE_TYPES    16
@@ -344,8 +344,8 @@ public void OnPluginStart() {
 			"CLagCompensationManager::StartLagCompensation()");
 	PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Pointer);
-	g_SDKStartLagCompensation = EndPrepSDKCall();
-	if (!g_SDKStartLagCompensation) {
+	g_SDKCallStartLagCompensation = EndPrepSDKCall();
+	if (!g_SDKCallStartLagCompensation) {
 		SetFailState("Failed to set up call to "
 				... "CLagCompensationManager::StartLagCompensation()");
 	}
@@ -354,8 +354,8 @@ public void OnPluginStart() {
 	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature,
 			"CLagCompensationManager::FinishLagCompensation()");
 	PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
-	g_SDKFinishLagCompensation = EndPrepSDKCall();
-	if (!g_SDKFinishLagCompensation) {
+	g_SDKCallFinishLagCompensation = EndPrepSDKCall();
+	if (!g_SDKCallFinishLagCompensation) {
 		SetFailState("Failed to set up call to "
 				... "CLagCompensationManager::FinishLagCompensation()");
 	}
@@ -446,11 +446,11 @@ public void OnPluginStart() {
 				offs_CTFPlayer_aObjects);
 	}
 	
-	offs_CTFPlayer_mpCurrentCommand = GameConfGetAddress(hGameConf,
+	offs_CTFPlayer_pCurrentCommand = GameConfGetAddress(hGameConf,
 			"offsetof(CTFPlayer::m_pCurrentCommand)");
-	if (!offs_CTFPlayer_mpCurrentCommand) {
+	if (!offs_CTFPlayer_pCurrentCommand) {
 		SetFailState("Could not determine offset of CTFPlayer::m_pCurrentCommand "
-				... "(received %08x)", offs_CTFPlayer_mpCurrentCommand);
+				... "(received %08x)", offs_CTFPlayer_pCurrentCommand);
 	}
 	
 	offs_CTFPlayer_aHealers = view_as<Address>(FindSendPropInfo("CTFPlayer", "m_nNumHealers") + 0xC);
@@ -470,8 +470,8 @@ public void OnPluginStart() {
 				... " (received %08x)", offs_CTFPlayer_flRespawnTimeOverride);
 	}
 	
-	offs_lagcompensation = GameConfGetAddress(hGameConf, "lagcompensation");
-	if (!offs_lagcompensation) {
+	g_LagCompensationManager = GameConfGetAddress(hGameConf, "lagcompensation");
+	if (!g_LagCompensationManager) {
 		SetFailState("Could not determine address of lagcompensation");
 	}
 	
@@ -1044,15 +1044,15 @@ any Native_GetPlayerFromSharedAddress(Handle plugin, int numParams) {
 any Native_StartLagCompensation(Handle plugin, int params) {
 	int client = GetNativeInGameClient(1);
 	
-	SDKCall(g_SDKStartLagCompensation, offs_lagcompensation, client,
-			GetEntityAddress(client) + offs_CTFPlayer_mpCurrentCommand);
+	SDKCall(g_SDKCallStartLagCompensation, g_LagCompensationManager, client,
+			GetEntityAddress(client) + offs_CTFPlayer_pCurrentCommand);
 	return 0;
 }
 
 any Native_FinishLagCompensation(Handle plugin, int params) {
 	int client = GetNativeInGameClient(1);
 	
-	SDKCall(g_SDKFinishLagCompensation, offs_lagcompensation, client);
+	SDKCall(g_SDKCallFinishLagCompensation, g_LagCompensationManager, client);
 	return 0;
 }
 
