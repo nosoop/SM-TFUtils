@@ -13,7 +13,7 @@
 #include <stocksoup/functions>
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "1.3.2"
+#define PLUGIN_VERSION "1.4.0"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
