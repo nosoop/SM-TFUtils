@@ -366,7 +366,7 @@
 				"library"	"server"
 				"linux"		"@_ZN23CLagCompensationManager21FinishLagCompensationEP11CBasePlayer"
 				"linux64"	"@_ZN23CLagCompensationManager21FinishLagCompensationEP11CBasePlayer"
-				"windows"	"\x55\x8B\xEC\x83\xEC\x44\x8B\x15\x2A\x2A\x2A\x2A"
+				"windows"	"\x55\x8B\xEC\x83\xEC\x44\x8B\x15\x2A\x2A\x2A\x2A\x53\x56\x33\xF6"
 				"windows64"	"\x4C\x8B\xDC\x49\x89\x4B\x08\x53\x48\x81\xEC\xD0\x00\x00\x00"
 			}
 			"CTFWeaponBaseMelee::Smack()"
