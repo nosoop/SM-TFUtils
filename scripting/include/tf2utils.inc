@@ -442,6 +442,30 @@ native bool TF2Util_IsPointInRespawnRoom(const float position[3],
 		int entity = INVALID_ENT_REFERENCE, bool bRestrictToSameTeam = false);
 
 /**
+ * Rewinds all players' properties (position, hitbox, etc) back to the point in time when the
+ * specified player issued the command currently being processed.
+ * 
+ * See: https://developer.valvesoftware.com/wiki/Lag_Compensation
+ * 
+ * @note            TF2Util_FinishLagCompensation must be called afterwards.
+ * @param client    Client index.
+ * 
+ * @error           Invalid client.
+ */
+native void TF2Util_StartLagCompensation(int client);
+
+/**
+ * Undoes the effects of TF2Util_StartLagCompensation, winding player properties forward up to
+ * the current time on the server.
+ * 
+ * @note            TF2Util_StartLagCompensation must have been called beforehand.
+ * @param client    Client index.
+ * 
+ * @error           Invalid client.
+ */
+native void TF2Util_FinishLagCompensation(int client);
+
+/**
  * Returns whether or not the given custom damage type is for a "damage over time" effect.
  * This is provided to allow plugins to identify periodic damage events without hardcoding that
  * information themselves.

@@ -48,9 +48,13 @@ Handle g_SDKCallPlayerSharedImmuneToPushback;
 Handle g_SDKCallPlayerSharedBurn;
 Handle g_SDKCallPlayerSharedMakeBleed;
 
+Handle g_SDKCallStartLagCompensation;
+Handle g_SDKCallFinishLagCompensation;
+
 Address offs_ConditionNames;
 Address offs_CTFPlayer_aObjects;
 Address offs_CTFPlayer_aHealers;
+Address offs_CTFPlayer_pCurrentCommand;
 any offs_CTFPlayer_flRespawnTimeOverride;
 any offs_CTFPlayer_flLastDamageTime;
 
@@ -79,6 +83,7 @@ Address offs_CEconWearable_bAlwaysValid;
 
 int sizeof_TFCondInfo;
 
+Address g_LagCompensationManager;
 int g_nConditions;
 
 #define MAX_DOT_DAMAGE_TYPES    16
@@ -144,6 +149,9 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	CreateNative("TF2Util_IsCustomDamageTypeDOT", Native_IsCustomDamageTypeDOT);
 	
 	CreateNative("TF2Util_GetPlayerFromSharedAddress", Native_GetPlayerFromSharedAddress);
+	
+	CreateNative("TF2Util_StartLagCompensation", Native_StartLagCompensation);
+	CreateNative("TF2Util_FinishLagCompensation", Native_FinishLagCompensation);
 	
 	// deprecated name for backcompat
 	CreateNative("TF2Util_GetPlayerMaxHealth", Native_GetMaxHealthBoost);
@@ -331,6 +339,27 @@ public void OnPluginStart() {
 		SetFailState("Failed to set up call to " ... "PointInRespawnRoom()");
 	}
 	
+	StartPrepSDKCall(SDKCall_Raw);
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature,
+			"CLagCompensationManager::StartLagCompensation()");
+	PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
+	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Pointer);
+	g_SDKCallStartLagCompensation = EndPrepSDKCall();
+	if (!g_SDKCallStartLagCompensation) {
+		SetFailState("Failed to set up call to "
+				... "CLagCompensationManager::StartLagCompensation()");
+	}
+	
+	StartPrepSDKCall(SDKCall_Raw);
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature,
+			"CLagCompensationManager::FinishLagCompensation()");
+	PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
+	g_SDKCallFinishLagCompensation = EndPrepSDKCall();
+	if (!g_SDKCallFinishLagCompensation) {
+		SetFailState("Failed to set up call to "
+				... "CLagCompensationManager::FinishLagCompensation()");
+	}
+	
 	// GameConfGetAddressOffset throws fail state if invalid; no need to validate here
 	
 	// networked CUtlVector offset support landed in 1.11; try to locate an offset there first
@@ -417,6 +446,20 @@ public void OnPluginStart() {
 				offs_CTFPlayer_aObjects);
 	}
 	
+	Address pOffsPlayerCurrentCommand = GameConfGetAddress(hGameConf,
+			"offsetof(CTFPlayer::m_pCurrentCommand)");
+	if (!pOffsPlayerCurrentCommand) {
+		SetFailState("Could not determine location to read CTFPlayer::m_pCurrentCommand from.");
+	}
+	
+	offs_CTFPlayer_pCurrentCommand = view_as<Address>(
+			LoadFromAddress(pOffsPlayerCurrentCommand, NumberType_Int32));
+	if (view_as<int>(offs_CTFPlayer_pCurrentCommand) & ~0xFFFF) {
+		// high bits are set - location is definitely not for a property offset
+		SetFailState("Could not determine offset of CTFPlayer::m_pCurrentCommand "
+				... "(received %08x)", offs_CTFPlayer_pCurrentCommand);
+	}
+	
 	offs_CTFPlayer_aHealers = view_as<Address>(FindSendPropInfo("CTFPlayer", "m_nNumHealers") + 0xC);
 	
 	Address pOffsPlayerRespawnOverride = GameConfGetAddress(hGameConf,
@@ -433,7 +476,12 @@ public void OnPluginStart() {
 		SetFailState("Could not determine offset of CTFPlayer::m_flRespawnTimeOverride "
 				... " (received %08x)", offs_CTFPlayer_flRespawnTimeOverride);
 	}
-
+	
+	g_LagCompensationManager = GameConfGetAddress(hGameConf, "g_LagCompensationManager");
+	if (!g_LagCompensationManager) {
+		SetFailState("Could not determine address of g_LagCompensationManager");
+	}
+	
 	offs_CEconWearable_bAlwaysValid = GameConfGetAddressOffset(hGameConf,
 			"CEconWearable::m_bAlwaysValid");
 	
@@ -998,6 +1046,23 @@ any Native_GetPlayerFromSharedAddress(Handle plugin, int numParams) {
 	Address pShared = GetNativeCell(1);
 	Address pOuter = DereferencePointer(pShared + offs_CTFPlayerShared_pOuter);
 	return GetEntityFromAddress(pOuter);
+}
+
+// void(int client);
+any Native_StartLagCompensation(Handle plugin, int params) {
+	int client = GetNativeInGameClient(1);
+	
+	SDKCall(g_SDKCallStartLagCompensation, g_LagCompensationManager, client,
+			GetEntityAddress(client) + offs_CTFPlayer_pCurrentCommand);
+	return 0;
+}
+
+// void(int client);
+any Native_FinishLagCompensation(Handle plugin, int params) {
+	int client = GetNativeInGameClient(1);
+	
+	SDKCall(g_SDKCallFinishLagCompensation, g_LagCompensationManager, client);
+	return 0;
 }
 
 bool IsEntityWeapon(int entity) {
