@@ -448,7 +448,7 @@ public void OnPluginStart() {
 	
 	Address pOffsPlayerCurrentCommand = GameConfGetAddress(hGameConf,
 			"offsetof(CTFPlayer::m_pCurrentCommand)");
-	if (!pOffsPlayerObjects) {
+	if (!pOffsPlayerCurrentCommand) {
 		SetFailState("Could not determine location to read CTFPlayer::m_pCurrentCommand from.");
 	}
 	
