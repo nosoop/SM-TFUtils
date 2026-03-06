@@ -28,7 +28,7 @@
 				"windows"
 				{
 					"signature"	"CTFPlayerShared::RemoveAllCond()"
-					"offset"	"155"
+					"offset"	"161"
 				}
 			}
 			"offsetof(CTFPlayer::m_aObjects)"
@@ -261,14 +261,14 @@
 				// contains unique ref to string "spunup_push_force_immunity"
 				"library"	"server"
 				"linux"		"@_ZNK15CTFPlayerShared18IsImmuneToPushbackEv"
-				"windows"	"\x55\x8B\xEC\x51\x56\x8B\xF1\x6A\x1C"
+				"windows"	"\x56\x8B\xF1\x6A\x1C"
 			}
 			"CTFPlayerShared::Burn()"
 			{
 				// contains unique ref to string "afterburn_immunity"
 				"library"	"server"
 				"linux"		"@_ZN15CTFPlayerShared4BurnEP9CTFPlayerP13CTFWeaponBasef"
-				"windows"	"\x55\x8B\xEC\x83\xEC\x08\x56\x8B\xF1\x8B\x8E\x2A\x01\x00\x00\x8B\x01"
+				"windows"	"\x55\x8B\xEC\x51\x56\x8B\xF1\x8B\x8E\x2A\x01\x00\x00"
 			}
 			"CTFPlayer::AddObject()"
 			{
@@ -337,7 +337,7 @@
 				// first non-virtual call after semi-unique xref to "Player.Spawn"
 				"library"		"server"
 				"linux"			"@_ZN15CTFPlayerShared13RemoveAllCondEv"
-				"windows"		"\x55\x8B\xEC\x83\xEC\x0C\x53\x56\x8B\xF1\x57\x8D\x9E\xE0\x00\x00\x00"
+				"windows"		"\x55\x8B\xEC\x83\xEC\x2A\x53\x56\x8B\xF1\x57\x8D\x9E\xE0\x00\x00\x00"
 			}
 			"GetTFConditionName()"
 			{
