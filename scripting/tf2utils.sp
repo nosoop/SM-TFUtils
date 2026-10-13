@@ -811,15 +811,27 @@ int Native_GetConditionName(Handle plugin, int numParams) {
 int Native_GetConditionFromName(Handle plugin, int numParams)
 {
 	char givenName[PLATFORM_MAX_PATH]; GetNativeString(1, givenName, sizeof(givenName));
+	static StringMap condMap;
+	
+	if (condMap == null)
+		condMap = new StringMap();
+	
+	int cond;
+	if (condMap.GetValue(givenName, cond))
+		return cond;
 	
 	for (int i = 0; i < g_nConditions; i++)
 	{
 		char condName[PLATFORM_MAX_PATH]; LoadStringFromAddress(DereferencePointer(offs_ConditionNames + view_as<Address>(i * 4)), condName, sizeof(condName));
 		
 		if (!strcmp(condName, givenName, false))
+		{
+			condMap.SetValue(condName, i, false);
 			return i;
+		}
 	}
 	
+	condMap.SetValue(givenName, -1, false);
 	return -1;
 }
 
