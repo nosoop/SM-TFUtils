@@ -826,7 +826,7 @@ int Native_GetConditionFromName(Handle plugin, int numParams)
 		
 		if (!strcmp(condName, givenName, false))
 		{
-			condMap.SetValue(condName, i, false);
+			condMap.SetValue(givenName, i, false);
 			return i;
 		}
 	}
