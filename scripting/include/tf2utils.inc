@@ -96,6 +96,14 @@ stock TFCond TF2Util_GetLastCondition() {
 native int TF2Util_GetConditionName(TFCond cond, char[] buffer, int maxlen);
 
 /**
+ * Given a valid condition name (case-insensitive), return its index.
+ * 
+ * @param name         Condition name.
+ * @return             Condition index, or -1 on an invalid name.
+ */
+native TFCond TF2Util_GetConditionFromName(const char[] name);
+
+/**
  * Returns the remaining time on a player condition, or 0.0 if the condition is not active.
  * 
  * This is just a wrapper around the internal condition list; some conditions may not accurately
@@ -519,6 +527,7 @@ public void __pl_tf2utils_SetNTVOptional()
 	MarkNativeAsOptional("TF2Util_GetPlayerMaxHealthBoost");
 	MarkNativeAsOptional("TF2Util_GetConditionCount");
 	MarkNativeAsOptional("TF2Util_GetConditionName");
+	MarkNativeAsOptional("TF2Util_GetConditionFromName");
 	MarkNativeAsOptional("TF2Util_GetPlayerConditionDuration");
 	MarkNativeAsOptional("TF2Util_SetPlayerConditionDuration");
 	MarkNativeAsOptional("TF2Util_GetPlayerConditionProvider");

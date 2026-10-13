@@ -101,6 +101,7 @@ public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	
 	CreateNative("TF2Util_GetConditionCount", Native_GetConditionCount);
 	CreateNative("TF2Util_GetConditionName", Native_GetConditionName);
+	CreateNative("TF2Util_GetConditionFromName", Native_GetConditionFromName);
 	CreateNative("TF2Util_GetPlayerConditionDuration", Native_GetPlayerConditionDuration);
 	CreateNative("TF2Util_SetPlayerConditionDuration", Native_SetPlayerConditionDuration);
 	CreateNative("TF2Util_GetPlayerConditionProvider", Native_GetPlayerConditionProvider);
@@ -804,6 +805,36 @@ int Native_GetConditionName(Handle plugin, int numParams) {
 	
 	SetNativeString(2, buffer, ++written, .bytes = actually_written);
 	return actually_written;
+}
+
+// TFCond(const char[] name);
+int Native_GetConditionFromName(Handle plugin, int numParams) {
+	char givenName[PLATFORM_MAX_PATH];
+	GetNativeString(1, givenName, sizeof(givenName));
+	
+	static StringMap condMap;
+	if (!condMap) {
+		condMap = new StringMap();
+	}
+	
+	int cond;
+	if (condMap.GetValue(givenName, cond)) {
+		return cond;
+	}
+	
+	for (int i; i < g_nConditions; i++) {
+		char condName[PLATFORM_MAX_PATH];
+		LoadStringFromAddress(DereferencePointer(offs_ConditionNames + view_as<Address>(i * 4)),
+				condName, sizeof(condName));
+		
+		if (StrEqual(condName, givenName, false)) {
+			condMap.SetValue(givenName, i);
+			return i;
+		}
+	}
+	
+	condMap.SetValue(givenName, -1);
+	return -1;
 }
 
 // float(int client, TFCond cond);
