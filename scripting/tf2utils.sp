@@ -828,12 +828,12 @@ int Native_GetConditionFromName(Handle plugin, int numParams) {
 				condName, sizeof(condName));
 		
 		if (StrEqual(condName, givenName, false)) {
-			condMap.SetValue(givenName, i, false);
+			condMap.SetValue(givenName, i);
 			return i;
 		}
 	}
 	
-	condMap.SetValue(givenName, -1, false);
+	condMap.SetValue(givenName, -1);
 	return -1;
 }
 
