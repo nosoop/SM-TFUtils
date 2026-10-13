@@ -96,7 +96,7 @@ stock TFCond TF2Util_GetLastCondition() {
 native int TF2Util_GetConditionName(TFCond cond, char[] buffer, int maxlen);
 
 /**
- * Given a valid condition name, return its index.
+ * Given a valid condition name (case-insensitive), return its index.
  * 
  * @param name         Condition name.
  * @return             Condition index, or -1 on an invalid name.
