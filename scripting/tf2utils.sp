@@ -808,24 +808,26 @@ int Native_GetConditionName(Handle plugin, int numParams) {
 }
 
 // TFCond(const char[] name);
-int Native_GetConditionFromName(Handle plugin, int numParams)
-{
-	char givenName[PLATFORM_MAX_PATH]; GetNativeString(1, givenName, sizeof(givenName));
-	static StringMap condMap;
+int Native_GetConditionFromName(Handle plugin, int numParams) {
+	char givenName[PLATFORM_MAX_PATH];
+	GetNativeString(1, givenName, sizeof(givenName));
 	
-	if (condMap == null)
+	static StringMap condMap;
+	if (!condMap) {
 		condMap = new StringMap();
+	}
 	
 	int cond;
-	if (condMap.GetValue(givenName, cond))
+	if (condMap.GetValue(givenName, cond)) {
 		return cond;
+	}
 	
-	for (int i = 0; i < g_nConditions; i++)
-	{
-		char condName[PLATFORM_MAX_PATH]; LoadStringFromAddress(DereferencePointer(offs_ConditionNames + view_as<Address>(i * 4)), condName, sizeof(condName));
+	for (int i; i < g_nConditions; i++) {
+		char condName[PLATFORM_MAX_PATH];
+		LoadStringFromAddress(DereferencePointer(offs_ConditionNames + view_as<Address>(i * 4)),
+				condName, sizeof(condName));
 		
-		if (!strcmp(condName, givenName, false))
-		{
+		if (StrEqual(condName, givenName, false)) {
 			condMap.SetValue(givenName, i, false);
 			return i;
 		}
