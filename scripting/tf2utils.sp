@@ -13,7 +13,7 @@
 #include <stocksoup/functions>
 #include <stocksoup/memory>
 
-#define PLUGIN_VERSION "1.5.0"
+#define PLUGIN_VERSION "1.5.1"
 public Plugin myinfo = {
 	name = "TF2 Utils",
 	author = "nosoop",
@@ -52,6 +52,9 @@ Handle g_SDKCallStartLagCompensation;
 Handle g_SDKCallFinishLagCompensation;
 
 Address offs_ConditionNames;
+Handle g_SDKCallGetTFConditionName;
+Handle g_SDKCallGetTFConditionFromName;
+
 Address offs_CTFPlayer_aObjects;
 Address offs_CTFPlayer_aHealers;
 Address offs_CTFPlayer_pCurrentCommand;
@@ -431,7 +434,28 @@ public void OnPluginStart() {
 				... "count native will report incorrect values.", g_nConditions);
 		g_nConditions = 0xFF;
 	}
+	
 	offs_ConditionNames = GameConfGetAddress(hGameConf, "g_aConditionNames");
+	if (!offs_ConditionNames) {
+		// as of 2026-11-23 TF2/Linux is compiled with ASLR (or at least `fPIC`)
+		// so on those platforms we fall back to calling the functions directly
+		StartPrepSDKCall(SDKCall_Static);
+		PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "GetTFConditionName()");
+		PrepSDKCall_SetReturnInfo(SDKType_String, SDKPass_Pointer);
+		PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
+		g_SDKCallGetTFConditionName = EndPrepSDKCall();
+		
+		StartPrepSDKCall(SDKCall_Static);
+		PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "GetTFConditionFromName()");
+		PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
+		PrepSDKCall_AddParameter(SDKType_String, SDKPass_Pointer);
+		g_SDKCallGetTFConditionFromName = EndPrepSDKCall();
+		
+		if (!g_SDKCallGetTFConditionFromName || !g_SDKCallGetTFConditionName) {
+			SetFailState("Failed to obtain g_aConditionNames address and/or set up calls to "
+					... "GetTFConditionName() / GetTFConditionFromName()");
+		}
+	}
 	
 	Address pOffsPlayerObjects = GameConfGetAddress(hGameConf,
 			"offsetof(CTFPlayer::m_aObjects)");
@@ -798,11 +822,17 @@ int Native_GetConditionName(Handle plugin, int numParams) {
 	}
 	
 	char[] buffer = new char[buflen];
-	int written = LoadStringFromAddress(
-			DereferencePointer(offs_ConditionNames + view_as<Address>(cond * 4)),
-			buffer, buflen);
-	int actually_written;
 	
+	int written = buflen;
+	if (g_SDKCallGetTFConditionName) {
+		SDKCall(g_SDKCallGetTFConditionName, buffer, buflen, cond);
+	} else {
+		written = LoadStringFromAddress(
+				DereferencePointer(offs_ConditionNames + view_as<Address>(cond * 4)),
+				buffer, buflen);
+	}
+	
+	int actually_written;
 	SetNativeString(2, buffer, ++written, .bytes = actually_written);
 	return actually_written;
 }
@@ -819,6 +849,13 @@ int Native_GetConditionFromName(Handle plugin, int numParams) {
 	
 	int cond;
 	if (condMap.GetValue(givenName, cond)) {
+		return cond;
+	}
+	
+	if (g_SDKCallGetTFConditionFromName) {
+		// actual call is case-insensitive like the plugin implementation below
+		cond = SDKCall(g_SDKCallGetTFConditionFromName, givenName);
+		condMap.SetValue(givenName, cond);
 		return cond;
 	}
 	

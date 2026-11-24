@@ -6,13 +6,9 @@
 		{
 			"g_aConditionNames"
 			{
-				"signature"		"GetTFConditionName()"
-				"linux"
-				{
-					"read"		"16"
-				}
 				"windows"
 				{
+					"signature"		"GetTFConditionName()"
 					"read"		"20"
 				}
 			}
@@ -338,6 +334,14 @@
 				"library"		"server"
 				"linux"			"@_ZN15CTFPlayerShared13RemoveAllCondEv"
 				"windows"		"\x55\x8B\xEC\x83\xEC\x2A\x53\x56\x8B\xF1\x57\x8D\x9E\xE0\x00\x00\x00"
+			}
+			"GetTFConditionFromName()"
+			{
+				// second call in opposite branch to xref "Missing key_to_lookup in condition"
+				// this is only used as a fallback for g_aConditionNames on ASLR'd linux builds
+				// as of 2026-11-23; windows does not use this path
+				"library"		"server"
+				"linux"			"@_Z22GetTFConditionFromNamePKc"
 			}
 			"GetTFConditionName()"
 			{
