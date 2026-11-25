@@ -16,10 +16,10 @@
 #define PLUGIN_VERSION "1.5.1"
 public Plugin myinfo = {
 	name = "TF2 Utils",
-	author = "nosoop",
-	description = "A plugin utility library for Team Fortress 2.",
+	author = "nosoop, TF2R Port kingo",
+	description = "A plugin utility library for Team Fortress 2 Rebalanced.",
 	version = PLUGIN_VERSION,
-	url = "https://github.com/nosoop/SM-TFUtils"
+	url = "https://github.com/kingo-tf/SM-TFUtils"
 }
 
 Handle g_SDKCallUpdatePlayerSpeed;
@@ -54,9 +54,9 @@ Handle g_SDKCallFinishLagCompensation;
 Address offs_ConditionNames;
 Handle g_SDKCallGetTFConditionName;
 Handle g_SDKCallGetTFConditionFromName;
+Handle g_SDKCallIsDOTDmg;
 
 Address offs_CTFPlayer_aObjects;
-Address offs_CTFPlayer_aHealers;
 Address offs_CTFPlayer_pCurrentCommand;
 any offs_CTFPlayer_flRespawnTimeOverride;
 any offs_CTFPlayer_flLastDamageTime;
@@ -67,6 +67,7 @@ Address offs_CTFPlayer_hMyWearables;
 
 Address offs_CTFPlayerShared_flBurnDuration;
 Address offs_CTFPlayerShared_BleedList;
+Address offs_CTFPlayerShared_aHealers;
 Address offs_CTFPlayerShared_ConditionData;
 Address offs_CTFPlayerShared_pOuter;
 
@@ -85,12 +86,14 @@ int sizeof_BleedStruct_t;
 Address offs_CEconWearable_bAlwaysValid;
 
 int sizeof_TFCondInfo;
+int sizeof_Healer;
+
+// where a CUtlVector keeps its element count on a 64-bit build: after an 8-byte pointer and
+// two ints
+#define UTLVECTOR_COUNT_OFFSET    0x10
 
 Address g_LagCompensationManager;
 int g_nConditions;
-
-#define MAX_DOT_DAMAGE_TYPES    16
-int g_nDOTDamageTypes, g_DOTDamageTypes[MAX_DOT_DAMAGE_TYPES];
 
 public APLRes AskPluginLoad2(Handle self, bool late, char[] error, int maxlen) {
 	RegPluginLibrary("nosoop_tf2utils");
@@ -230,6 +233,9 @@ public void OnPluginStart() {
 	PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer, VDECODE_FLAG_ALLOWNULL);
 	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer, VDECODE_FLAG_ALLOWNULL);
 	PrepSDKCall_AddParameter(SDKType_Float, SDKPass_Plain);
+	// bool bFixed: a parameter this game's function has and TF2's doesn't.  It has to be passed
+	// or the game reads whatever is in its place; false is what TF2's function does
+	PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
 	g_SDKCallPlayerSharedBurn = EndPrepSDKCall();
 	if (!g_SDKCallPlayerSharedBurn) {
 		SetFailState("Failed to set up call to " ... "CTFPlayerShared::Burn()");
@@ -344,7 +350,7 @@ public void OnPluginStart() {
 	}
 	
 	StartPrepSDKCall(SDKCall_Raw);
-	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature,
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual,
 			"CLagCompensationManager::StartLagCompensation()");
 	PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Pointer);
@@ -355,7 +361,7 @@ public void OnPluginStart() {
 	}
 	
 	StartPrepSDKCall(SDKCall_Raw);
-	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature,
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Virtual,
 			"CLagCompensationManager::FinishLagCompensation()");
 	PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
 	g_SDKCallFinishLagCompensation = EndPrepSDKCall();
@@ -363,30 +369,34 @@ public void OnPluginStart() {
 		SetFailState("Failed to set up call to "
 				... "CLagCompensationManager::FinishLagCompensation()");
 	}
+
+	StartPrepSDKCall(SDKCall_Static);
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "IsDOTDmg()");
+	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
+	PrepSDKCall_SetReturnInfo(SDKType_Bool, SDKPass_Plain);
+	g_SDKCallIsDOTDmg = EndPrepSDKCall();
+	if (!g_SDKCallIsDOTDmg) {
+		SetFailState("Failed to set up call to "
+				... "IsDOTDmg()");
+	}
+
 	
 	// GameConfGetAddressOffset throws fail state if invalid; no need to validate here
 	
-	// networked CUtlVector offset support landed in 1.11; try to locate an offset there first
-	offs_CTFPlayer_hMyWearables =
-			view_as<Address>(FindSendPropInfo("CTFPlayer", "m_hMyWearables"));
-	if (offs_CTFPlayer_hMyWearables <= Address_Null) {
-		offs_CTFPlayer_hMyWearables = GameConfGetAddressOffset(hGameConf,
-				"CTFPlayer::m_hMyWearables");
+	// both are networked CUtlVectors, which SourceMod gives the offsets of
+	int offs_CTFPlayer_Wearables = FindSendPropInfo("CTFPlayer", "m_hMyWearables");
+	if (offs_CTFPlayer_Wearables <= 0) {
+		SetFailState("Could not find sendprop CTFPlayer::m_hMyWearables");
 	}
+	offs_CTFPlayer_hMyWearables = view_as<Address>(offs_CTFPlayer_Wearables);
 	
 	int offs_CTFPlayer_Shared = FindSendPropInfo("CTFPlayer", "m_Shared");
 	int offs_CTFPlayer_ConditionData = FindSendPropInfo("CTFPlayer", "m_ConditionData");
-	if (0 < offs_CTFPlayer_Shared < offs_CTFPlayer_ConditionData) {
-		/**
-		 * This works in 1.11; on 1.10, both properties' offsets point to CTFPlayer::m_Shared
-		 * instead, which is incorrect.
-		 */
-		offs_CTFPlayerShared_ConditionData =
-				view_as<Address>(offs_CTFPlayer_ConditionData - offs_CTFPlayer_Shared);
-	} else {
-		offs_CTFPlayerShared_ConditionData = GameConfGetAddressOffset(hGameConf,
-				"CTFPlayerShared::m_ConditionData");
+	if (!(0 < offs_CTFPlayer_Shared < offs_CTFPlayer_ConditionData)) {
+		SetFailState("Could not find sendprop CTFPlayer::m_ConditionData");
 	}
+	offs_CTFPlayerShared_ConditionData =
+			view_as<Address>(offs_CTFPlayer_ConditionData - offs_CTFPlayer_Shared);
 	
 	offs_CTFPlayerShared_flBurnDuration = GameConfGetAddressOffset(hGameConf,
 			"CTFPlayerShared::m_flBurnDuration");
@@ -394,7 +404,7 @@ public void OnPluginStart() {
 	offs_CTFPlayerShared_pOuter = GameConfGetAddressOffset(hGameConf,
 			"CTFPlayerShared::m_pOuter");
 	
-	sizeof_TFCondInfo = GameConfGetOffset(hGameConf, "sizeof(TFCondInfo_t)");
+	sizeof_TFCondInfo = GameConfGetAddressValue(hGameConf, "sizeof(TFCondInfo_t)");
 	
 	offs_TFCondInfo_flDuration = GameConfGetAddressOffset(hGameConf,
 			"TFCondInfo_t::m_flDuration");
@@ -418,7 +428,7 @@ public void OnPluginStart() {
 			"BleedStruct_t::m_bPermanent");
 	offs_BleedStruct_t_nCustomDmg = GameConfGetAddressOffset(hGameConf,
 			"BleedStruct_t::m_nCustomDamageType");
-	sizeof_BleedStruct_t = GameConfGetOffset(hGameConf, "sizeof(BleedStruct_t)");
+	sizeof_BleedStruct_t = GameConfGetAddressValue(hGameConf, "sizeof(BleedStruct_t)");
 	
 	Address pNumConds = GameConfGetAddress(hGameConf, "&TF_COND_LAST");
 	if (!pNumConds) {
@@ -485,7 +495,9 @@ public void OnPluginStart() {
 				... "(received %08x)", offs_CTFPlayer_pCurrentCommand);
 	}
 	
-	offs_CTFPlayer_aHealers = view_as<Address>(FindSendPropInfo("CTFPlayer", "m_nNumHealers") + 0xC);
+	offs_CTFPlayerShared_aHealers = GameConfGetAddressOffset(hGameConf,
+			"CTFPlayerShared::m_aHealers");
+	sizeof_Healer = GameConfGetAddressValue(hGameConf, "sizeof(healers_t)");
 	
 	Address pOffsPlayerRespawnOverride = GameConfGetAddress(hGameConf,
 			"offsetof(CTFPlayer::m_flRespawnTimeOverride)");
@@ -510,27 +522,10 @@ public void OnPluginStart() {
 	offs_CEconWearable_bAlwaysValid = GameConfGetAddressOffset(hGameConf,
 			"CEconWearable::m_bAlwaysValid");
 	
-	offs_CTFPlayer_flLastDamageTime = GameConfGetAddressOffset(hGameConf,
-			"CTFPlayer::m_flLastDamageTime");
-	
-	// allocate 5 chars for each value + delimiter
-	char damageTypes[MAX_DOT_DAMAGE_TYPES * 5];
-	if (!GameConfGetKeyValue(hGameConf, "DOTDamageTypes", damageTypes, sizeof(damageTypes))) {
-		SetFailState("Could not retrieve DOTDamageTypes values");
-	} else for (int c, i, res; (i = StringToIntEx(damageTypes[c], res, 0x10)); c += i) {
-		/**
-		 * Parse numeric values from the list.
-		 * I don't expect the game to ever have as many DOT damage types as the hardcoded
-		 * limit of 16 I've initally assigned here, but if it does, don't silently fail.
-		 */
-		if (g_nDOTDamageTypes == MAX_DOT_DAMAGE_TYPES) {
-			SetFailState("Not enough space allocated to parse damage types (limit %d) - "
-					... "update MAX_DOT_DAMAGE_TYPES and recompile", MAX_DOT_DAMAGE_TYPES);
-		} else if (res == 0) {
-			continue;
-		}
-		
-		g_DOTDamageTypes[g_nDOTDamageTypes++] = res;
+	// networked in this game
+	offs_CTFPlayer_flLastDamageTime = FindSendPropInfo("CTFPlayer", "m_flLastDamageTime");
+	if (offs_CTFPlayer_flLastDamageTime <= 0) {
+		SetFailState("Could not find sendprop CTFPlayer::m_flLastDamageTime");
 	}
 	
 	delete hGameConf;
@@ -663,12 +658,12 @@ int Native_GetPlayerWearable(Handle plugin, int nParams) {
 	int client = GetNativeInGameClient(1);
 	int index = GetNativeCell(2);
 	
-	int count = GetEntData(client, view_as<int>(offs_CTFPlayer_hMyWearables) + 0x0C);
+	int count = GetEntData(client, view_as<int>(offs_CTFPlayer_hMyWearables) + UTLVECTOR_COUNT_OFFSET);
 	if (index < 0 || index >= count) {
 		ThrowNativeError(SP_ERROR_NATIVE, "Invalid index %d (count: %d)", index, count);
 	}
 	
-	Address pData = DereferencePointer(GetEntityAddress(client)
+	Address pData = LoadAddressFromAddress(GetEntityAddress(client)
 			+ view_as<Address>(offs_CTFPlayer_hMyWearables));
 	return LoadEntityHandleFromAddress(pData + view_as<Address>(0x04 * index));
 }
@@ -677,7 +672,7 @@ int Native_GetPlayerWearable(Handle plugin, int nParams) {
 int Native_GetPlayerWearableCount(Handle plugin, int nParams) {
 	int client = GetNativeInGameClient(1);
 	
-	return GetEntData(client, view_as<int>(offs_CTFPlayer_hMyWearables) + 0x0C);
+	return GetEntData(client, view_as<int>(offs_CTFPlayer_hMyWearables) + UTLVECTOR_COUNT_OFFSET);
 }
 
 // void(int client, float result[3]);
@@ -694,12 +689,12 @@ int Native_GetPlayerObject(Handle plugin, int nParams) {
 	int client = GetNativeInGameClient(1);
 	int index = GetNativeCell(2);
 	
-	int count = GetEntData(client, view_as<int>(offs_CTFPlayer_aObjects) + 0x0C);
+	int count = GetEntData(client, view_as<int>(offs_CTFPlayer_aObjects) + UTLVECTOR_COUNT_OFFSET);
 	if (index < 0 || index >= count) {
 		ThrowNativeError(SP_ERROR_NATIVE, "Invalid index %d (count: %d)", index, count);
 	}
 	
-	Address pData = DereferencePointer(GetEntityAddress(client)
+	Address pData = LoadAddressFromAddress(GetEntityAddress(client)
 			+ view_as<Address>(offs_CTFPlayer_aObjects));
 	return EntRefToEntIndex(
 			LoadEntityHandleFromAddress(pData + view_as<Address>(0x04 * index)));
@@ -709,7 +704,7 @@ int Native_GetPlayerObject(Handle plugin, int nParams) {
 int Native_GetPlayerObjectCount(Handle plugin, int nParams) {
 	int client = GetNativeInGameClient(1);
 	
-	return GetEntData(client, view_as<int>(offs_CTFPlayer_aObjects) + 0x0C);
+	return GetEntData(client, view_as<int>(offs_CTFPlayer_aObjects) + UTLVECTOR_COUNT_OFFSET);
 }
 
 // int(int client, int index);
@@ -724,9 +719,9 @@ int Native_GetPlayerHealer(Handle plugin, int nParams) {
 		ThrowNativeError(SP_ERROR_NATIVE, "Invalid index %d (count: %d)", index, count);
 	}
 	
-	Address pData = DereferencePointer(GetEntityAddress(client)
-			+ view_as<Address>(offs_CTFPlayer_aHealers));
-	return EntRefToEntIndex(LoadEntityHandleFromAddress(pData + view_as<Address>(0x24 * index)));
+	Address pData = LoadAddressFromAddress(GetPlayerSharedAddress(client)
+			+ offs_CTFPlayerShared_aHealers);
+	return EntRefToEntIndex(LoadEntityHandleFromAddress(pData + view_as<Address>(sizeof_Healer * index)));
 }
 
 // float(int client);
@@ -828,7 +823,7 @@ int Native_GetConditionName(Handle plugin, int numParams) {
 		SDKCall(g_SDKCallGetTFConditionName, buffer, buflen, cond);
 	} else {
 		written = LoadStringFromAddress(
-				DereferencePointer(offs_ConditionNames + view_as<Address>(cond * 4)),
+				LoadAddressFromAddress(offs_ConditionNames + view_as<Address>(cond * 8)),
 				buffer, buflen);
 	}
 	
@@ -861,7 +856,7 @@ int Native_GetConditionFromName(Handle plugin, int numParams) {
 	
 	for (int i; i < g_nConditions; i++) {
 		char condName[PLATFORM_MAX_PATH];
-		LoadStringFromAddress(DereferencePointer(offs_ConditionNames + view_as<Address>(i * 4)),
+		LoadStringFromAddress(LoadAddressFromAddress(offs_ConditionNames + view_as<Address>(i * 8)),
 				condName, sizeof(condName));
 		
 		if (StrEqual(condName, givenName, false)) {
@@ -967,6 +962,7 @@ void Native_IgnitePlayer(Handle plugin, int numParams) {
 	int client = GetNativeInGameClient(1);
 	int attacker = GetNativeCell(2);
 	float duration = GetNativeCell(3);
+	bool fixed = GetNativeCell(4);
 	int weapon = GetNativeWeaponEntity(4, .allowNull = true);
 	
 	// NULL is allowed for attacker
@@ -979,7 +975,7 @@ void Native_IgnitePlayer(Handle plugin, int numParams) {
 	}
 	
 	SDKCall(g_SDKCallPlayerSharedBurn, GetPlayerSharedAddress(client), attacker, weapon,
-			duration);
+			duration, fixed);
 }
 
 // int(int client);
@@ -1101,18 +1097,13 @@ void Native_SetPlayerRespawnTimeOverride(Handle plugin, int numParams) {
 // bool(int damagecustom);
 any Native_IsCustomDamageTypeDOT(Handle plugin, int numParams) {
 	int damagecustom = GetNativeCell(1);
-	for (int i; i < g_nDOTDamageTypes; i++) {
-		if (g_DOTDamageTypes[i] == damagecustom) {
-			return true;
-		}
-	}
-	return false;
+	return SDKCall(g_SDKCallIsDOTDmg, damagecustom);
 }
 
 // int(Address pShared);
 any Native_GetPlayerFromSharedAddress(Handle plugin, int numParams) {
-	Address pShared = GetNativeCell(1);
-	Address pOuter = DereferencePointer(pShared + offs_CTFPlayerShared_pOuter);
+	Address pShared = GetNativeAddress(1);
+	Address pOuter = LoadAddressFromAddress(pShared + offs_CTFPlayerShared_pOuter);
 	return GetEntityFromAddress(pOuter);
 }
 
@@ -1174,7 +1165,7 @@ static void SetPlayerRespawnTimeOverrideInternal(int client, float time) {
 }
 
 static Address GetConditionData(int client, TFCond cond) {
-	Address pCondMemory = DereferencePointer(GetEntityAddress(client)
+	Address pCondMemory = LoadAddressFromAddress(GetEntityAddress(client)
 			+ view_as<Address>(FindSendPropInfo("CTFPlayer", "m_Shared"))
 			+ offs_CTFPlayerShared_ConditionData);
 	return pCondMemory + view_as<Address>(view_as<int>(cond) * sizeof_TFCondInfo);
@@ -1182,7 +1173,7 @@ static Address GetConditionData(int client, TFCond cond) {
 
 static int GetPlayerBleedCount(int client) {
 	return GetEntData(client, FindSendPropInfo("CTFPlayer", "m_Shared")
-			+ view_as<int>(offs_CTFPlayerShared_BleedList) + 0xC);
+			+ view_as<int>(offs_CTFPlayerShared_BleedList) + UTLVECTOR_COUNT_OFFSET);
 }
 
 static Address GetPlayerBleedInfo(int client, int index) {
@@ -1191,7 +1182,7 @@ static Address GetPlayerBleedInfo(int client, int index) {
 		ThrowNativeError(SP_ERROR_NATIVE, "Invalid index %d (count %d)", index, count);
 	}
 	
-	Address pBleedMemory = DereferencePointer(GetEntityAddress(client)
+	Address pBleedMemory = LoadAddressFromAddress(GetEntityAddress(client)
 			+ view_as<Address>(FindSendPropInfo("CTFPlayer", "m_Shared"))
 			+ offs_CTFPlayerShared_BleedList);
 	return pBleedMemory + view_as<Address>(view_as<int>(index) * sizeof_BleedStruct_t);
@@ -1204,6 +1195,27 @@ static Address GetPlayerSharedAddress(int client) {
 
 static bool IsConditionValid(TFCond cond) {
 	return 0 <= view_as<any>(cond) < g_nConditions;
+}
+
+// reads a 32-bit number the game keeps in memory, such as the size of a struct
+static int GameConfGetAddressValue(Handle gamedata, const char[] key) {
+	Address addr = GameConfGetAddress(gamedata, key);
+	if (!addr) {
+		SetFailState("Failed to get address %s", key);
+	}
+	return LoadFromAddress(addr, NumberType_Int32);
+}
+
+/**
+ * Gets an Address from a native parameter.  An Address is 64 bits wide, which a native gets as
+ * a reference to two cells and not as a cell.
+ */
+static Address GetNativeAddress(int param) {
+	int cells[2];
+	GetNativeArray(param, cells, sizeof(cells));
+
+	int64 low = view_as<int64>(cells[0]) & ((view_as<int64>(1) << 32) - view_as<int64>(1));
+	return view_as<Address>((view_as<int64>(cells[1]) << 32) | low);
 }
 
 static Address GameConfGetAddressOffset(Handle gamedata, const char[] key) {

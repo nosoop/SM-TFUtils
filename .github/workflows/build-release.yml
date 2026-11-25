@@ -1,0 +1,82 @@
+name: Build Release
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+env:
+  # The SourceMod build for TF2 Rebalanced: its compiler and includes are used
+  SOURCEMOD_REPO: kingo-tf/sourcemod
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: Get SourceMod
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # The newest release that has a Linux package (its releases are prereleases,
+          # and the Linux package is uploaded a while after the release is created)
+          url=$(gh api "repos/$SOURCEMOD_REPO/releases?per_page=20" --jq \
+            '[.[] | select(.draft | not) | .assets[] | select(.name | test("^sourcemod-.*-linux\\.tar\\.gz$"))][0].browser_download_url // empty')
+          if [ -z "$url" ]; then
+            echo "::error::No release of $SOURCEMOD_REPO has a Linux package."
+            exit 1
+          fi
+          echo "Using $url"
+          mkdir sourcemod
+          curl -fsSL "$url" | tar -xz -C sourcemod
+
+      - name: Setup Ninja Build
+        uses: ashutoshvarma/setup-ninja@master
+        with:
+          version: 1.10.0
+
+      - name: Compile
+        run: |
+          # The project's own build: configure.py lists the plugins and the files that go with them
+          python3 configure.py --spcomp-dir sourcemod/addons/sourcemod/scripting
+          ninja
+          # spcomp's exit code is not relied on: the plugin has to be there
+          if [ ! -s build/plugins/tf2utils.smx ]; then
+            echo "::error::scripting/tf2utils.sp did not compile."
+            exit 1
+          fi
+
+      - name: Package
+        id: package
+        run: |
+          # The plugin's own version, plus the number of commits
+          base=$(sed -n 's/^#define PLUGIN_VERSION "\([0-9.]*\)".*/\1/p' scripting/tf2utils.sp | head -n 1)
+          if [ -z "$base" ]; then
+            echo "::error::No PLUGIN_VERSION found in scripting/tf2utils.sp."
+            exit 1
+          fi
+          version="$base.$(git rev-list --count HEAD)"
+          filename="tf2utils-$version.zip"
+          # What the build put together: the plugin, its gamedata, its source and its include
+          mkdir -p package/addons/sourcemod
+          cp -r build/plugins build/gamedata build/scripting package/addons/sourcemod/
+          (cd package && zip -r "../$filename" addons)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "filename=$filename" >> "$GITHUB_OUTPUT"
+
+      - name: Create Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create '${{ steps.package.outputs.version }}' '${{ steps.package.outputs.filename }}' \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title '${{ steps.package.outputs.version }}' \
+            --generate-notes \
+            --latest

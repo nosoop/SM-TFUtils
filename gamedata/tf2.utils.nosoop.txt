@@ -1,389 +1,225 @@
 "Games"
 {
-	"tf"
+	"tf_ktbm"
 	{
+		// Everything here is answered by the game itself, by the name after "exposed"
+		// ("ktbm_gamedata_list" in the server console lists them), so there are no
+		// signatures or offsets to keep up to date.
 		"Addresses"
 		{
-			"g_aConditionNames"
-			{
-				"windows"
-				{
-					"signature"		"GetTFConditionName()"
-					"read"		"20"
-				}
-			}
+			// each of these is the address of a 32-bit number
 			"&TF_COND_LAST"
 			{
-				// GetTFConditionName() uses a different value for comparisons on each platform,
-				// so we can't just reuse that function
-				"linux"
-				{
-					"signature"	"CTFPlayerShared::PulseRageBuff()"
-					"offset"	"541"
-				}
-				"windows"
-				{
-					"signature"	"CTFPlayerShared::RemoveAllCond()"
-					"offset"	"161"
-				}
+				"exposed"	"TF_COND_LAST"
+			}
+			"sizeof(TFCondInfo_t)"
+			{
+				"exposed"	"sizeof(condition_source_t)"
+			}
+			"sizeof(BleedStruct_t)"
+			{
+				"exposed"	"sizeof(bleed_struct_t)"
+			}
+			"sizeof(healers_t)"
+			{
+				"exposed"	"sizeof(healers_t)"
 			}
 			"offsetof(CTFPlayer::m_aObjects)"
 			{
-				"linux"
-				{
-					"signature"		"CTFPlayer::GetObject()"
-					"offset"		"23"
-				}
-				"windows"
-				{
-					"signature"		"CTFPlayer::AddObject()"
-					"offset"		"53"
-				}
+				"exposed"	"CTFPlayer::m_aObjects"
 			}
 			"offsetof(CTFPlayer::m_flRespawnTimeOverride)"
 			{
-				"signature"		"CTFPlayer::IsReadyToSpawn()"
-				"linux"
-				{
-					"offset"	"102"
-				}
-				"windows"
-				{
-					"offset"	"129"
-				}
-			}
-			"g_LagCompensationManager"
-			{
-				"linux"
-				{
-					"signature"	"g_LagCompensationManager"
-				}
-				"windows"
-				{
-					"signature"	"CTFWeaponBaseMelee::Smack()"
-					"read"		"27"
-					"read"		"0"
-				}
+				"exposed"	"CTFPlayer::m_flRespawnTimeOverride"
 			}
 			"offsetof(CTFPlayer::m_pCurrentCommand)"
 			{
-				"signature"		"CTFWeaponBaseMelee::Smack()"
-				"linux"
-				{
-					"offset"	"80"
-				}
-				"windows"
-				{
-					"offset"	"35"
-				}
+				// declared in CBasePlayer
+				"exposed"	"CBasePlayer::m_pCurrentCommand"
 			}
-		}
-		"Keys"
-		{
-			// space-separated set of hex values corresponding to damage types that are 'damage over time'
-			// the game inlines this functionality so we'll have to implement this ourselves
-			// 0x03 = TF_CUSTOM_BURNING
-			// 0x08 = TF_CUSTOM_BURNING_FLARE
-			// 0x11 = TF_CUSTOM_BURNING_ARROW
-			// 0x22 = TF_CUSTOM_BLEEDING
-			"DOTDamageTypes"		"03 08 11 22"
+
+			// what the game's "lagcompensation" pointer points at: the ILagCompensationManager
+			// part of the object, which is what its two virtual functions are called on
+			"g_LagCompensationManager"
+			{
+				"exposed"	"lagcompensation"
+				"read"		"0"
+			}
 		}
 		"Offsets"
 		{
 			// virtual offsets
 			"CBaseCombatCharacter::Weapon_Switch()"
 			{
-				"windows"	"275"
-				"linux"		"276"
+				"exposed"	"CBaseCombatCharacter::Weapon_Switch"
 			}
 			"CBaseCombatCharacter::Weapon_ShootPosition()"
 			{
-				"windows"	"276"
-				"linux"		"277"
+				"exposed"	"CBaseCombatCharacter::Weapon_ShootPosition"
 			}
 			"CBaseCombatWeapon::GetSlot()"
 			{
-				"windows"	"334"
-				"linux"		"340"
+				"exposed"	"CBaseCombatWeapon::GetSlot"
 			}
 			"CBaseEntity::GetMaxHealth()"
 			{
-				"windows"	"123"
-				"linux"		"124"
+				"exposed"	"CBaseEntity::GetMaxHealth"
 			}
 			"CBaseEntity::IsBaseCombatWeapon()"
 			{
-				"windows"	"92"
-				"linux"		"93"
+				"exposed"	"CBaseEntity::IsBaseCombatWeapon"
 			}
 			"CBaseEntity::IsWearable()"
 			{
-				"windows"	"93"
-				"linux"		"94"
+				"exposed"	"CBaseEntity::IsWearable"
 			}
 			"CBaseEntity::TakeHealth()"
 			{
-				"windows"	"66"
-				"linux"		"67"
+				"exposed"	"CBaseEntity::TakeHealth"
 			}
 			"CTFWeaponBase::CanAttack()"
 			{
-				"windows"	"428"
-				"linux"		"435"
+				"exposed"	"CTFWeaponBase::CanAttack"
 			}
 			"CTFWeaponBase::GetMaxClip1()"
 			{
-				"windows"	"325"
-				"linux"		"331"
+				"exposed"	"CTFWeaponBase::GetMaxClip1"
 			}
 			"CTFWeaponBase::GetWeaponID()"
 			{
-				"windows"	"382"
-				"linux"		"388"
+				"exposed"	"CTFWeaponBase::GetWeaponID"
 			}
 			"CTFPlayer::EquipWearable()"
 			{
-				"windows"	"439"
-				"linux"		"440"
+				"exposed"	"CTFPlayer::EquipWearable"
 			}
-			
-			// member offsets
-			// any resemblance to the names present in official game code is purely coincidental
-			// (this excludes names visible via sendprops and symbols, of course)
-			"CTFPlayer::m_hMyWearables"
+			"CLagCompensationManager::StartLagCompensation()"
 			{
-				// CUtlVector<EHandle>, currently offsetof(m_flMaxSpeed) - 0x14
-				"linux"		"3848"
-				"windows"	"3824"
+				"exposed"	"ILagCompensationManager::StartLagCompensation"
 			}
-			"CTFPlayer::m_flLastDamageTime"
+			"CLagCompensationManager::FinishLagCompensation()"
 			{
-				"linux"		"8980"
-				"windows"	"8972"
+				"exposed"	"ILagCompensationManager::FinishLagCompensation"
 			}
+
+			// member offsets; the names on the left are the plugin's, those on the right the game's
 			"CTFPlayerShared::m_pOuter"
 			{
-				// checked in CTFPlayerShared::HasDemoShieldEquipped()
-				"linux"		"396"
-				"windows"	"396"
-			}
-			"CTFPlayerShared::m_ConditionData"
-			{
-				"linux"		"8"
-				"windows"	"8"
+				"exposed"	"CTFPlayerShared::m_pOuter"
 			}
 			"CTFPlayerShared::m_flBurnDuration"
 			{
-				// after unique xref to string "mult_wpn_burntime"
-				"linux"		"516"
-				"windows"	"516"
+				"exposed"	"CTFPlayerShared::m_flAfterburnDuration"
 			}
 			"CTFPlayerShared::m_BleedList"
 			{
-				// in MakeBleed
-				"linux"		"520"
-				"windows"	"520"
+				"exposed"	"CTFPlayerShared::m_PlayerBleeds"
 			}
-			
+			"CTFPlayerShared::m_aHealers"
+			{
+				"exposed"	"CTFPlayerShared::m_aHealers"
+			}
+
 			"TFCondInfo_t::m_flDuration"
 			{
-				"linux"		"8"
-				"windows"	"8"
+				"exposed"	"condition_source_t::m_flExpireTime"
 			}
 			"TFCondInfo_t::m_hProvider"
 			{
-				"linux"		"12"
-				"windows"	"12"
+				"exposed"	"condition_source_t::m_pProvider"
 			}
-			
-			"sizeof(TFCondInfo_t)"
-			{
-				"linux"		"20"
-				"windows"	"20"
-			}
-			
+
 			"BleedStruct_t::m_hAttacker"
 			{
-				"linux"		"0"
-				"windows"	"0"
+				"exposed"	"bleed_struct_t::hBleedingAttacker"
 			}
 			"BleedStruct_t::m_hWeapon"
 			{
-				"linux"		"4"
-				"windows"	"4"
+				"exposed"	"bleed_struct_t::hBleedingWeapon"
 			}
 			"BleedStruct_t::m_flNextTickTime"
 			{
-				"linux"		"8"
-				"windows"	"8"
+				"exposed"	"bleed_struct_t::flBleedingTime"
 			}
 			"BleedStruct_t::m_flExpireTime"
 			{
-				"linux"		"12"
-				"windows"	"12"
+				"exposed"	"bleed_struct_t::flBleedingRemoveTime"
 			}
 			"BleedStruct_t::m_nDamage"
 			{
-				"linux"		"16"
-				"windows"	"16"
+				"exposed"	"bleed_struct_t::nBleedDmg"
 			}
 			"BleedStruct_t::m_bPermanent"
 			{
-				"linux"		"20"
-				"windows"	"20"
+				"exposed"	"bleed_struct_t::bPermanentBleeding"
 			}
 			"BleedStruct_t::m_nCustomDamageType"
 			{
-				"linux"		"24"
-				"windows"	"24"
+				"exposed"	"bleed_struct_t::nDmgType"
 			}
-			"sizeof(BleedStruct_t)"
-			{
-				"linux"		"28"
-				"windows"	"28"
-			}
-			
+
 			"CEconWearable::m_bAlwaysValid"
 			{
-				// CEconWearable ctor
-				"linux"		"1476"
-				"windows"	"1464"
+				"exposed"	"CEconWearable::m_bAlwaysAllow"
 			}
 		}
 		"Signatures"
 		{
 			"CTFPlayerShared::IsImmuneToPushback()"
 			{
-				// contains unique ref to string "spunup_push_force_immunity"
 				"library"	"server"
-				"linux"		"@_ZNK15CTFPlayerShared18IsImmuneToPushbackEv"
-				"windows"	"\x56\x8B\xF1\x6A\x1C"
+				"exposed"	"CTFPlayerShared::IsImmuneToPushback"
 			}
 			"CTFPlayerShared::Burn()"
 			{
-				// contains unique ref to string "afterburn_immunity"
 				"library"	"server"
-				"linux"		"@_ZN15CTFPlayerShared4BurnEP9CTFPlayerP13CTFWeaponBasef"
-				"windows"	"\x55\x8B\xEC\x51\x56\x8B\xF1\x8B\x8E\x2A\x01\x00\x00"
-			}
-			"CTFPlayer::AddObject()"
-			{
-				// we only use this to get offsetof(CTFPlayer::m_aObjects) on Windows
-				"library"		"server"
-				"windows"		"\x55\x8B\xEC\x51\x53\x56\x57\x8B\x7D\x08\x8B\xD9\x85\xFF\x74\x2A\x8B\x07\x8B\xCF\xFF\x50\x08\x8B\x00\xEB\x2A\x83\xC8\xFF\x33\xF6\x89\x45\xFC\x39\xB3\x2A\x23\x00\x00"
-			}
-			"CTFPlayer::GetEntityForLoadoutSlot()"
-			{
-				// called a few blocks after function with unique x-ref string "enable_misc2_noisemaker"
-				"library"	"server"
-				"windows"	"\x55\x8B\xEC\x51\x53\x56\x8B\x75\x08\x8B\xC1"
-				"linux"		"@_ZN9CTFPlayer23GetEntityForLoadoutSlotEib"
-				"mac"		"@_ZN9CTFPlayer23GetEntityForLoadoutSlotEib"
-			}
-			"CTFPlayer::GetMaxAmmo()"
-			{
-				"library"		"server"
-				"linux"			"@_ZN9CTFPlayer10GetMaxAmmoEii"
-				"windows"		"\x55\x8B\xEC\x8B\x45\x0C\x53\x8B\xD9"
-			}
-			"CTFPlayer::TeamFortress_SetSpeed()"
-			{
-				// function is x-ref to CTFPlayer::TeamFortress_CalculateMaxSpeed
-				"library"		"server"
-				"linux"			"@_ZN9CTFPlayer21TeamFortress_SetSpeedEv"
-				"windows"		"\x55\x8B\xEC\x83\xEC\x24\xA1\x2A\x2A\x2A\x2A\x56\x8B\xF1\x89\x75\xF0"
-			}
-			"CTFPlayer::GetObject()"
-			{
-				// we only use this to get offsetof(CTFPlayer::m_aObjects) on Linux
-				"library"	"server"
-				"linux"		"@_ZNK9CTFPlayer9GetObjectEi"
-			}
-			"CTFPlayer::IsReadyToSpawn()"
-			{
-				// Windows signature can be found with a bytescan of "83 BE ?? ?? 00 00 03 5E"
-				// (conditional setter at the end of the function)
-				// we only use this to get offsetof(CTFPlayer::m_flRespawnTimeOverride)
-				"library"	"server"
-				"linux"		"@_ZN9CTFPlayer14IsReadyToSpawnEv"
-				"windows"	"\x56\x8B\xF1\x57\x80\xBE\x2A\x2A\x00\x00\x00\x0F\x85\x2A\x00\x00\x00\x8B"
+				"exposed"	"CTFPlayerShared::Burn"
 			}
 			"CTFPlayerShared::GetMaxBuffedHealth()"
 			{
-				// unique xref to call containing unique xref string "add_maxhealth"
-				"library"		"server"
-				"linux"			"@_ZN15CTFPlayerShared18GetMaxBuffedHealthEbb"
-				"windows"		"\x55\x8B\xEC\x83\xEC\x14\x53\x8B\xD9\x56\x57\x8B\x8B\x2A\x01\x00\x00"
+				"library"	"server"
+				"exposed"	"CTFPlayerShared::GetMaxBuffedHealth"
 			}
 			"CTFPlayerShared::MakeBleed()"
 			{
-				// copied from sm-tf2.games
-				"library"		"server"
-				"linux"			"@_ZN15CTFPlayerShared9MakeBleedEP9CTFPlayerP13CTFWeaponBasefibi"
-				"windows"		"\x55\x8B\xEC\x83\xEC\x10\x53\x8B\xD9\x89\x5D\x2A\x8B\x8B"
+				"library"	"server"
+				"exposed"	"CTFPlayerShared::MakeBleed"
 			}
-			"CTFPlayerShared::PulseRageBuff()"
+			"CTFPlayer::GetEntityForLoadoutSlot()"
 			{
-				// only used for offsetof(TF_COND_LAST) on Linux
-				"library"		"server"
-				"linux"			"@_ZN15CTFPlayerShared13PulseRageBuffENS_13ERageBuffSlotE"
+				"library"	"server"
+				"exposed"	"CTFPlayer::GetEntityForLoadoutSlot"
 			}
-			"CTFPlayerShared::RemoveAllCond()"
+			"CTFPlayer::GetMaxAmmo()"
 			{
-				// first non-virtual call after semi-unique xref to "Player.Spawn"
-				"library"		"server"
-				"linux"			"@_ZN15CTFPlayerShared13RemoveAllCondEv"
-				"windows"		"\x55\x8B\xEC\x83\xEC\x2A\x53\x56\x8B\xF1\x57\x8D\x9E\xE0\x00\x00\x00"
+				"library"	"server"
+				"exposed"	"CTFPlayer::GetMaxAmmo"
 			}
-			"GetTFConditionFromName()"
+			"CTFPlayer::TeamFortress_SetSpeed()"
 			{
-				// second call in opposite branch to xref "Missing key_to_lookup in condition"
-				// this is only used as a fallback for g_aConditionNames on ASLR'd linux builds
-				// as of 2026-11-23; windows does not use this path
-				"library"		"server"
-				"linux"			"@_Z22GetTFConditionFromNamePKc"
+				"library"	"server"
+				"exposed"	"CTFPlayer::TeamFortress_SetSpeed"
 			}
 			"GetTFConditionName()"
 			{
-				"library"		"server"
-				"linux"			"@_Z18GetTFConditionName7ETFCond"
-				"windows"		"\x55\x8B\xEC\x8B\x45\x08\x3D\x2A\x00\x00\x00\x73\x0D"
+				// with no "g_aConditionNames" address, the plugin calls these two instead
+				"library"	"server"
+				"exposed"	"GetTFConditionName"
+			}
+			"GetTFConditionFromName()"
+			{
+				"library"	"server"
+				"exposed"	"GetTFConditionFromName"
 			}
 			"PointInRespawnRoom()"
 			{
-				"library"		"server"
-				"linux"			"@_Z18PointInRespawnRoomPK11CBaseEntityRK6Vectorb"
-				"windows"		"\x55\x8B\xEC\x53\x33\xDB\x56\x57"
-			}
-			"CLagCompensationManager::StartLagCompensation()"
-			{
-				// "Trying to start a new lag compensation "
 				"library"	"server"
-				"linux"		"@_ZN23CLagCompensationManager20StartLagCompensationEP11CBasePlayerP8CUserCmd"
-				"linux64"	"@_ZN23CLagCompensationManager20StartLagCompensationEP11CBasePlayerP8CUserCmd"
-				"windows"	"\x55\x8B\xEC\x83\xEC\x28\x57\x8B\xF9\x89\x7D\xE4"
-				"windows64"	"\x40\x55\x57\x41\x55\x48\x81\xEC\xA0\x00\x00\x00"
+				"exposed"	"PointInRespawnRoom"
 			}
-			"CLagCompensationManager::FinishLagCompensation()"
-			{
-				// "FinishLagCompensation"
-				"library"	"server"
-				"linux"		"@_ZN23CLagCompensationManager21FinishLagCompensationEP11CBasePlayer"
-				"linux64"	"@_ZN23CLagCompensationManager21FinishLagCompensationEP11CBasePlayer"
-				"windows"	"\x55\x8B\xEC\x83\xEC\x44\x8B\x15\x2A\x2A\x2A\x2A\x53\x56\x33\xF6"
-				"windows64"	"\x4C\x8B\xDC\x49\x89\x4B\x08\x53\x48\x81\xEC\xD0\x00\x00\x00"
-			}
-			"CTFWeaponBaseMelee::Smack()"
-			{
-				// "medic_bonesaw_hits"
-				"library"	"server"
-				"linux"		"@_ZN18CTFWeaponBaseMelee5SmackEv"
-				"windows"	"\x55\x8B\xEC\x83\xEC\x74\x57\x8B\xF9\xE8\x2A\x2A\x2A\x2A\x89\x45\xF8\x85\xC0"
-			}
-			"g_LagCompensationManager"
+			"IsDOTDmg()"
 			{
 				"library"	"server"
-				"linux"	"@_ZL24g_LagCompensationManager"
+				"exposed"	"IsDOTDmg"
 			}
 		}
 	}

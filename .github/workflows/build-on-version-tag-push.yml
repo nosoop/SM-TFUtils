@@ -5,21 +5,37 @@ on:
   release:
     types: [published]
 
+env:
+  # The SourceMod build for TF2 Rebalanced: its compiler and includes are used
+  SOURCEMOD_REPO: kingo-tf/sourcemod
+
 jobs:
   run:
     name: Build Release Package
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
     - uses: actions/checkout@v1
       with:
         submodules: true
 
-    - name: Setup SourcePawn Compiler
-      uses: rumblefrog/setup-sp@v1.2.4
-      with:
-        version: "1.12.x"
-        no-spcomp-proxy: true
+    - name: Get SourceMod
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        # The newest release that has a Linux package (its releases are prereleases,
+        # and the Linux package is uploaded a while after the release is created)
+        url=$(gh api "repos/$SOURCEMOD_REPO/releases?per_page=20" --jq \
+          '[.[] | select(.draft | not) | .assets[] | select(.name | test("^sourcemod-.*-linux\\.tar\\.gz$"))][0].browser_download_url // empty')
+        if [ -z "$url" ]; then
+          echo "::error::No release of $SOURCEMOD_REPO has a Linux package."
+          exit 1
+        fi
+        echo "Using $url"
+        mkdir sourcemod
+        curl -fsSL "$url" | tar -xz -C sourcemod
 
     - name: Setup Ninja Build
       uses: ashutoshvarma/setup-ninja@master
@@ -28,7 +44,7 @@ jobs:
 
     - name: Build Files
       run: |
-        python3 configure.py
+        python3 configure.py --spcomp-dir sourcemod/addons/sourcemod/scripting
         ninja
 
     - name: Upload Include

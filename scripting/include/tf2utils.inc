@@ -154,18 +154,19 @@ native void TF2Util_SetPlayerBurnDuration(int client, float duration);
 
 /**
  * Sets a client on fire.  This is effectively the same as `TF2_IgnitePlayer` but with the
- * additional ability to set the weapon (allowing attribute modifiers to take effect).
+ * additional ability to set the weapon (allowing attribute modifiers to take effect) and fixed burn duration.
  * 
  * @param client      Target client index.
  * @param attacker    Attacker client index, or INVALID_ENT_REFERENCE for none.
  * @param duration    Duration of fire, in seconds.
  * @param weapon      Weapon entity, or INVALID_ENT_REFERENCE for none.
+ * @param fixed		  sets the burn time to a fixed value instead of adding
  * 
  * @note              As of Jungle Inferno, fire duration is capped to 10 seconds.
  * @error             Invalid clients, or non-weapon entity.
  */
 native void TF2Util_IgnitePlayer(int client, int attacker, float duration,
-		int weapon = INVALID_ENT_REFERENCE);
+		int weapon = INVALID_ENT_REFERENCE, bool fixed = false);
 
 /**
  * @param client    Client index.
